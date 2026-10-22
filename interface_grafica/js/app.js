@@ -5,7 +5,7 @@
  * a camada de API (api.js), mantendo o fluxo estrito:
  * início -> perguntas -> parecer de triagem com explicabilidade.
  */
-import { iniciarAnamnese, enviarResposta, USANDO_MOCK } from './api.js';
+import { iniciarAnamnese, enviarResposta, executarCasoDemo, obterAuditoriaRegraDeOuro, USANDO_MOCK } from './api.js';
 import { icone } from './icones.js';
 
 // ---------------------------------------------------------------------------
@@ -26,8 +26,26 @@ const navBaseRegras = document.getElementById('nav-base-regras');
 const modalBaseRegras = document.getElementById('modal-base-regras');
 const btnFecharModal = document.getElementById('btn-fechar-modal');
 const btnEntendidoModal = document.getElementById('btn-entendido-modal');
+const btnAbrirComoFunciona = document.getElementById('btn-abrir-como-funciona');
+const gridCatalogoDoencas = document.getElementById('grid-catalogo-doencas');
 const iconeBtnIniciar = document.getElementById('icone-btn-iniciar');
 const iconePranchetaVazia = document.getElementById('icone-prancheta-vazia');
+
+// Elementos da Demo em 1 Clique e Auditoria Regra de Ouro
+const btnDemoCetose = document.getElementById('btn-demo-cetose');
+const btnDemoHipocalcemia = document.getElementById('btn-demo-hipocalcemia');
+const btnDemoMastite = document.getElementById('btn-demo-mastite');
+const btnAbrirAuditoria = document.getElementById('btn-abrir-auditoria');
+const modalAuditoria = document.getElementById('modal-auditoria');
+const btnFecharModalAuditoria = document.getElementById('btn-fechar-modal-auditoria');
+const btnEntendidoAuditoria = document.getElementById('btn-entendido-auditoria');
+const auditoriaDeclaracao = document.getElementById('auditoria-declaracao');
+const auditoriaHash = document.getElementById('auditoria-hash');
+const auditoriaArquivo = document.getElementById('auditoria-arquivo');
+const auditoriaAmbiente = document.getElementById('auditoria-ambiente');
+const auditoriaRegras = document.getElementById('auditoria-regras');
+const auditoriaDoencas = document.getElementById('auditoria-doencas');
+const auditoriaParametros = document.getElementById('auditoria-parametros');
 
 // Injeção de ícones SVG estáticos locais
 if (iconeBtnIniciar) {
@@ -36,6 +54,114 @@ if (iconeBtnIniciar) {
 if (iconePranchetaVazia) {
     iconePranchetaVazia.appendChild(icone('prancheta', 'w-10 h-10', 'Prancheta vazia'));
 }
+
+// ---------------------------------------------------------------------------
+// Catálogo das 8 Enfermidades (v3.1.0) nos 4 Pilares Clínicos
+// ---------------------------------------------------------------------------
+const CATALOGO_PILARES = [
+    {
+        pilar: 'Glândula Mamária',
+        icone: '🍼',
+        descricao: 'Infecções e inflamações do úbere e do leite.',
+        doencas: [
+            {
+                nome: 'Mastite Clínica',
+                sintomas: 'Leite com grumos, pus ou sangue no caneco preto; úbere inchado, quente ou dolorido.',
+                conduta: 'Isolar a ordenha, ordenhar por último e acionar veterinário para coleta e cultura.',
+            },
+            {
+                nome: 'Mastite Subclínica',
+                sintomas: 'Leite visualmente normal, mas com CMT positivo (formação de gel) ou CCS > 200 mil.',
+                conduta: 'Realizar CMT individual em todos os tetos, avaliar CCS e revisar rotina de pré/pós-dipping.',
+            },
+        ],
+    },
+    {
+        pilar: 'Metabólico & Periparto',
+        icone: '⚡',
+        descricao: 'Distúrbios energéticos e minerais em vacas de alta produção.',
+        doencas: [
+            {
+                nome: 'Hipocalcemia (Febre do Leite)',
+                sintomas: 'Vaca caída (decúbito) no periparto, tremores, cabeça no flanco (pescoço em S), extremidades frias.',
+                conduta: 'EMERGÊNCIA: acionar médico-veterinário imediatamente. Apoiar em decúbito esternal com sombra.',
+            },
+            {
+                nome: 'Cetose (Acetonemia)',
+                sintomas: 'Hálito/leite com odor adocicado de acetona, perda rápida de peso, inapetência e queda de leite.',
+                conduta: 'Confirmar com fita de corpos cetônicos (BHB sangue/urina) e revisar nutrição de transição.',
+            },
+            {
+                nome: 'Acidose Ruminal',
+                sintomas: 'Fezes líquidas/espumosas com cheiro azedo, timpanismo, atonia do rúmen e queda da gordura do leite.',
+                conduta: 'Suspender concentrado excessivo, fornecer volumoso de fibra longa e solicitar suporte clínico.',
+            },
+        ],
+    },
+    {
+        pilar: 'Infeccioso & Podal',
+        icone: '🩺',
+        descricao: 'Doenças transmitidas por vetores e afecções locomotoras.',
+        doencas: [
+            {
+                nome: 'Tristeza Parasitária (TPB)',
+                sintomas: 'Febre alta (>40°C), mucosas pálidas ou amareladas (anemia/icterícia), urina escura e carrapatos.',
+                conduta: 'EMERGÊNCIA: chamar veterinário urgente. Proteger da insolação, evitar estresse e locomoção.',
+            },
+            {
+                nome: 'Afecção Podal (Casco)',
+                sintomas: 'Claudicação (manqueira), lesão interdigital ou no talão, dor e calor na coroa do casco.',
+                conduta: 'Conter o animal, inspecionar cascos, realizar casqueamento curativo e higienizar piso/pedilúvio.',
+            },
+        ],
+    },
+    {
+        pilar: 'Ambiência & Conforto',
+        icone: '🌡️',
+        descricao: 'Fatores bioclimáticos que limitam a homeostase e produtividade.',
+        doencas: [
+            {
+                nome: 'Estresse Térmico',
+                sintomas: 'Dia com ITU > 72, respiração acelerada ofegante (>60 mov/min), salivação e busca intensa por sombra.',
+                conduta: 'Ativar ventiladores e aspersores na linha de alimentação e sala de espera; garantir água fresca à vontade.',
+            },
+        ],
+    },
+];
+
+function renderizarCatalogoDoencas() {
+    if (!gridCatalogoDoencas) return;
+    gridCatalogoDoencas.replaceChildren();
+
+    CATALOGO_PILARES.forEach((grupo) => {
+        const cardPilar = el('div', 'card-bio p-5 flex flex-col justify-between border-t-4 border-t-[#9A3F25]');
+
+        // 1. Box de resumo com o detalhamento das doenças na PARTE DE CIMA
+        const listaDoencas = el('div', 'flex flex-col gap-3 mb-4');
+        grupo.doencas.forEach((d) => {
+            const caixaD = el('div', 'bg-[#F7F2EC] rounded-xl p-3 border border-[#E7DDD3]/80');
+            const nomeD = el('h4', 'text-[13px] font-bold text-[#7E2F18] m-0 mb-1', d.nome);
+            const sintD = el('p', 'text-xs text-[#2A211C] m-0 mb-1.5 leading-snug', `🔍 ${d.sintomas}`);
+            const condD = el('p', 'text-[11px] text-[#5F5148] m-0 leading-snug', `🩺 Conduta: ${d.conduta}`);
+            caixaD.append(nomeD, sintD, condD);
+            listaDoencas.append(caixaD);
+        });
+
+        // 2. Identificação e descrição do Pilar Clínico
+        const topo = el('div', 'flex flex-col gap-2 pt-3 border-t border-[#E7DDD3]/70');
+        const titPilar = el('div', 'flex items-center gap-2');
+        titPilar.append(
+            el('span', 'text-2xl', grupo.icone),
+            el('h3', 'text-base font-bold text-[#2A211C] m-0', grupo.pilar)
+        );
+        const descPilar = el('p', 'text-xs text-[#5F5148] m-0 leading-normal', grupo.descricao);
+        topo.append(titPilar, descPilar);
+
+        cardPilar.append(listaDoencas, topo);
+        gridCatalogoDoencas.append(cardPilar);
+    });
+}
+renderizarCatalogoDoencas();
 
 // ---------------------------------------------------------------------------
 // Estado da Anamnese Ativa
@@ -112,11 +238,74 @@ function obterCategoria(pergunta) {
 // ---------------------------------------------------------------------------
 // Utilitários DOM
 // ---------------------------------------------------------------------------
-function el(tag, classes = '', texto) {
+function el(tag, classes = '', conteudo) {
     const elemento = document.createElement(tag);
     if (classes) elemento.className = classes;
-    if (texto !== undefined) elemento.textContent = texto;
+    if (conteudo !== undefined && conteudo !== null) {
+        if (Array.isArray(conteudo)) {
+            conteudo.forEach((item) => {
+                if (item instanceof Node) {
+                    elemento.appendChild(item);
+                } else if (item !== undefined && item !== null) {
+                    elemento.appendChild(document.createTextNode(String(item)));
+                }
+            });
+        } else if (conteudo instanceof Node) {
+            elemento.appendChild(conteudo);
+        } else {
+            elemento.textContent = String(conteudo);
+        }
+    }
     return elemento;
+}
+
+/** Cria um card colapsável (Accordion) com cabeçalho interativo e animação suave */
+function criarSecaoAccordion({ eyebrowText, titulo, subtitulo, expandidoPadrao = false, conteudoElemento, classeExtra = '' }) {
+    const card = el('div', `card-bio p-6 sm:p-7 ${classeExtra}`.trim());
+
+    const header = el('button', 'w-full text-left bg-transparent border-0 p-0 flex items-center justify-between cursor-pointer accordion-header group');
+    header.type = 'button';
+    header.setAttribute('aria-expanded', expandidoPadrao ? 'true' : 'false');
+
+    const topoEsq = el('div', 'flex flex-col');
+    if (eyebrowText) {
+        topoEsq.append(el('span', 'eyebrow block mb-1', eyebrowText));
+    }
+    topoEsq.append(el('h3', 'text-lg font-bold text-[#2A211C] m-0 mb-1', titulo));
+    if (subtitulo) {
+        topoEsq.append(el('p', 'text-xs text-[#5F5148] m-0', subtitulo));
+    }
+
+    const badgeToggle = el(
+        'span',
+        'text-xs font-bold text-[#7E2F18] bg-[#F3E3DA] px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0 ml-4 transition-all duration-200 group-hover:bg-[#EADFD3]'
+    );
+    badgeToggle.innerHTML = expandidoPadrao ? '<span>▲</span> <span>Recolher</span>' : '<span>▼</span> <span>Expandir</span>';
+
+    header.append(topoEsq, badgeToggle);
+    card.append(header);
+
+    const corpo = el(
+        'div',
+        `accordion-conteudo mt-5 pt-5 border-t border-[#E7DDD3] ${expandidoPadrao ? '' : 'colapsado'}`
+    );
+    corpo.append(conteudoElemento);
+    card.append(corpo);
+
+    header.addEventListener('click', () => {
+        const estaColapsado = corpo.classList.contains('colapsado');
+        if (estaColapsado) {
+            corpo.classList.remove('colapsado');
+            header.setAttribute('aria-expanded', 'true');
+            badgeToggle.innerHTML = '<span>▲</span> <span>Recolher</span>';
+        } else {
+            corpo.classList.add('colapsado');
+            header.setAttribute('aria-expanded', 'false');
+            badgeToggle.innerHTML = '<span>▼</span> <span>Expandir</span>';
+        }
+    });
+
+    return card;
 }
 
 // ---------------------------------------------------------------------------
@@ -248,12 +437,14 @@ function mostrarPergunta(pergunta) {
     const numeroPergunta = estado.historico.length + 1;
     const categoria = obterCategoria(pergunta);
 
-    // 1. Linha superior: "Pergunta N" e categoria
+    // 1. Linha superior: "Pergunta x" (dinâmico, sem menção a limite máximo) e categoria
     const linhaTopo = el('div', 'flex items-center justify-between text-[13px] font-semibold text-[#5F5148] w-full px-1');
     linhaTopo.append(el('span', '', `Pergunta ${numeroPergunta}`), el('span', '', categoria));
 
-    // 2. Barra de progresso (track h10, fill accent)
-    const progresso = Math.min(100, Math.max(10, Math.round((numeroPergunta / 18) * 100)));
+    // 2. Barra de progresso dinâmica contínua (sem teto fixo de 20 perguntas)
+    const respondidas = numeroPergunta - 1;
+    const totalVisual = Math.max(respondidas + 3, 5);
+    const progresso = respondidas === 0 ? 5 : Math.min(94, Math.round((respondidas / totalVisual) * 100));
     const trackProgresso = el('div', 'w-full h-[10px] bg-[#EADFD3] rounded-full overflow-hidden my-2');
     const fillProgresso = el('div', 'h-full bg-[#9A3F25] rounded-full transition-all duration-300');
     fillProgresso.style.width = `${progresso}%`;
@@ -270,15 +461,15 @@ function mostrarPergunta(pergunta) {
         pergunta.ajuda || 'Avalie os sinais apresentados pelo animal e responda conforme o grau de confiança.'
     );
 
-    // Grid de 5 colunas com os 5 botões especificados
+    // Grid de opções intuitivas com 5 graus de indício
     const gridOpcoes = el('div', 'grid grid-cols-2 min-[900px]:grid-cols-5 gap-3 w-full');
 
     const OPCOES_5 = [
-        { rotulo: 'Sim', sub: 'CF +1.0', valor: 's' },
-        { rotulo: 'Provavelmente sim', sub: 'CF +0.6', valor: 'p' },
-        { rotulo: 'Não sei', sub: 'CF 0.0', valor: '?' },
-        { rotulo: 'Provavelmente não', sub: 'CF -0.6', valor: 'n' },
-        { rotulo: 'Não', sub: 'CF -1.0', valor: 'n' },
+        { rotulo: 'Sim', sub: 'Confirma o sinal', valor: 's' },
+        { rotulo: 'Provavelmente sim', sub: 'Forte suspeita', valor: 'p' },
+        { rotulo: 'Não sei', sub: 'Sem observação', valor: '?' },
+        { rotulo: 'Provavelmente não', sub: 'Pouco provável', valor: 'pn' },
+        { rotulo: 'Não', sub: 'Sinal ausente', valor: 'n' },
     ];
 
     OPCOES_5.forEach((opt) => {
@@ -297,11 +488,11 @@ function mostrarPergunta(pergunta) {
         gridOpcoes.append(btn);
     });
 
-    // Nota explicativa
+    // Nota explicativa humanizada
     const nota = el(
         'p',
         'text-sm text-[#5F5148] mt-8 mb-0 flex items-center gap-2 border-t border-[#E7DDD3]/60 pt-4',
-        'Cada resposta é convertida em Fator de Certeza e inserida na memória de trabalho.'
+        'Cada resposta alimenta a árvore dedutiva de regras clínicas em tempo real.'
     );
 
     card.append(eyebrow, h2, dica, gridOpcoes, nota);
@@ -315,6 +506,28 @@ function mostrarPergunta(pergunta) {
     acoesLateral.append(btnReiniciar);
 }
 
+function obterBadgeClassificacao(certeza) {
+    if (certeza >= 0.8) {
+        return {
+            rotulo: '🚨 Forte Indício (Ação Imediata)',
+            classe: 'badge-forte',
+            nivel: 'alto',
+        };
+    }
+    if (certeza >= 0.4) {
+        return {
+            rotulo: '⚠️ Provável (Atenção & Acompanhamento)',
+            classe: 'badge-provavel',
+            nivel: 'medio',
+        };
+    }
+    return {
+        rotulo: '🟢 Inconclusivo / Baixa Probabilidade',
+        classe: 'badge-inconclusivo',
+        nivel: 'baixo',
+    };
+}
+
 function mostrarDiagnostico(resposta) {
     painelPrincipal.replaceChildren();
 
@@ -322,35 +535,53 @@ function mostrarDiagnostico(resposta) {
     const top = hipoteses[0] || {
         doenca: 'Sem diagnóstico conclusivo',
         certeza: 0,
+        cf_percentual: 0,
+        explicacao: [],
         justificativa: [],
         recomendacao: 'Coletar mais evidências clínicas.',
     };
 
-    // Cabeçalho da tela de resultado
+    const pctTop = Math.round((top.certeza || 0) * 100);
+    const badgeTop = obterBadgeClassificacao(top.certeza);
+
+    // Container geral do Laudo Completo
     const containerResultado = el('div', 'w-full flex flex-col gap-6 surgir');
 
-    const cabecalho = el('div', 'flex flex-col items-start');
-    cabecalho.append(
-        el('span', 'eyebrow mb-1', 'RESULTADO DA ANAMNESE'),
-        el('h1', 'font-serif text-[32px] sm:text-[36px] font-bold text-[#2A211C] m-0 mb-1', 'Parecer de triagem'),
-        el('p', 'text-sm text-[#5F5148] m-0', `${estado.historico.length} perguntas respondidas`)
+    // Cabeçalho da tela de resultado (Limpo, sem metadados brutos de sessão)
+    const cabecalho = el('div', 'flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E7DDD3] pb-4');
+    const titEsq = el('div', 'flex flex-col items-start');
+    titEsq.append(
+        el('span', 'eyebrow mb-1', 'LAUDO CLÍNICO & PARECER DE TRIAGEM'),
+        el('h1', 'font-serif text-[28px] sm:text-[34px] font-bold text-[#2A211C] m-0', 'Resultado da Avaliação'),
+        el('p', 'text-sm text-[#5F5148] m-0 mt-0.5', `Triagem baseada em ${estado.historico.length} evidências clínicas coletadas`)
     );
+    const acoesCabecalho = el('div', 'flex items-center gap-3');
+    const badgeNivelTopo = el(
+        'span',
+        `px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${badgeTop.classe}`,
+        badgeTop.rotulo
+    );
+    acoesCabecalho.append(badgeNivelTopo);
+    cabecalho.append(titEsq, acoesCabecalho);
 
-    // Card Principal: Mais Provável
+    // 1. Diagnóstico Principal (Card Líder)
     const cardPrincipal = el('div', 'card-bio p-7 sm:p-8');
-
-    const pctTop = Math.round((top.certeza || 0) * 100);
-
-    const topoCard = el('div', 'flex items-baseline justify-between gap-4');
+    const topoCard = el('div', 'flex items-start justify-between gap-4');
     const esqCard = el('div', 'flex flex-col');
     esqCard.append(
-        el('span', 'eyebrow block mb-1', 'MAIS PROVÁVEL'),
-        el('h2', 'text-[24px] sm:text-[26px] font-bold text-[#2A211C] m-0', top.doenca)
+        el('span', 'eyebrow block mb-1', 'HIPÓTESE PRINCIPAL DETECTADA'),
+        el('h2', 'text-[24px] sm:text-[28px] font-bold text-[#2A211C] m-0', top.doenca),
+        el('span', 'text-xs font-semibold text-[#5F5148] mt-1', `Pilar: ${top.pilar || 'Clínico'} · Sistema: ${top.sistema || 'Geral'}`),
+        el('span', 'text-xs font-bold mt-1 text-[#9A3F25]', `Urgência Clínica: ${top.urgencia >= 3 ? '🚨 ALTA (Emergência Médica)' : top.urgencia >= 2 ? '⚠️ MÉDIA (Atenção Prioritária)' : '🟢 BAIXA (Monitoramento)'}`)
     );
-    const dirCard = el('span', 'text-[30px] sm:text-[34px] font-bold text-[#9A3F25] shrink-0', `${pctTop}%`);
+    const dirCard = el('div', 'flex flex-col items-end shrink-0');
+    dirCard.append(
+        el('span', 'text-xs font-bold text-[#5F5148] uppercase tracking-wider', 'Indício Estimado'),
+        el('span', 'text-[32px] sm:text-[38px] font-bold text-[#9A3F25]', `${pctTop}%`)
+    );
     topoCard.append(esqCard, dirCard);
 
-    // Barra de certeza principal (track h12 com fill = %)
+    // Barra de estimativa principal
     const trackPrincipal = el('div', 'h-3 bg-[#EADFD3] rounded-full overflow-hidden my-4');
     const fillPrincipal = el('div', 'h-full bg-[#9A3F25] rounded-full transition-all duration-700');
     fillPrincipal.style.width = '0%';
@@ -359,65 +590,81 @@ function mostrarDiagnostico(resposta) {
 
     cardPrincipal.append(topoCard, trackPrincipal);
 
-    // Alerta (só se urgente ou se top.alerta existir)
-    if (top.alerta || top.certeza >= 0.75) {
-        const caixaAlerta = el('div', 'bg-[#FFF1D6] border border-[#E8C877] text-[#5C3D00] rounded-xl p-4 my-4 flex items-start gap-3');
+    // Alerta de Urgência em destaque se necessário
+    if (top.alerta || top.certeza >= 0.75 || top.urgencia >= 2.5) {
+        const caixaAlerta = el('div', 'bg-[#FFF1D6] border border-[#E8C877] text-[#5C3D00] rounded-xl p-4 my-2 flex items-start gap-3');
         const iconeAlerta = icone('alerta', 'w-5 h-5 text-[#5C3D00] shrink-0 mt-0.5', 'Alerta');
         const corpoAlerta = el('div', 'flex flex-col');
         corpoAlerta.append(
-            el('h3', 'text-sm font-bold m-0 mb-1', 'Atenção veterinária urgente'),
+            el('h3', 'text-sm font-bold m-0 mb-1', 'Atenção Veterinária Urgente'),
             el('p', 'text-sm m-0 leading-relaxed', top.alerta || 'Quadro com alta probabilidade clínica de emergência. Acionar o médico-veterinário imediatamente.')
         );
         caixaAlerta.append(iconeAlerta, corpoAlerta);
         cardPrincipal.append(caixaAlerta);
     }
 
-    // Seção "Por que este diagnóstico?" com linhas formatadas
-    const sessaoExplicacao = el('div', 'mt-6 mb-4');
-    sessaoExplicacao.append(el('h3', 'text-base font-bold text-[#2A211C] m-0 mb-3', 'Por que este diagnóstico?'));
-
-    const listaEvidencias = el('div', 'flex flex-col gap-2');
-    if (top.justificativa && top.justificativa.length > 0) {
-        top.justificativa.forEach((just) => {
-            const linha = el('div', 'bg-[#F7F2EC] rounded-[10px] p-3 text-sm flex items-center justify-between gap-3 border border-[#E7DDD3]/60');
-            linha.append(
-                el('span', 'text-[#2A211C] text-sm leading-normal', String(just)),
-                el('span', 'font-bold text-xs uppercase tracking-wide text-[#7E2F18] bg-[#F3E3DA] px-2.5 py-1 rounded-md shrink-0', 'Reforça suspeita')
-            );
-            listaEvidencias.append(linha);
-        });
-    } else {
-        const linhaVazia = el('div', 'bg-[#F7F2EC] rounded-[10px] p-3 text-sm text-[#5F5148] italic border border-[#E7DDD3]/60', 'Evidências acumuladas através das respostas fornecidas.');
-        listaEvidencias.append(linhaVazia);
-    }
-    sessaoExplicacao.append(listaEvidencias);
-    cardPrincipal.append(sessaoExplicacao);
-
-    // Caixa de recomendação
-    const caixaRecomendacao = el('div', 'border border-[#E7DDD3] rounded-xl p-4 bg-[#F7F2EC]/50 mt-6');
-    caixaRecomendacao.append(
-        el('h4', 'text-sm font-bold text-[#2A211C] m-0 mb-1', 'Recomendação'),
-        el('p', 'text-[15px] text-[#5F5148] m-0 leading-relaxed', top.recomendacao || 'Consultar avaliação presencial de médico-veterinário e monitorar evolução do animal.')
+    // 2. Conduta e Recomendações Sanitárias (Manejo e Diretrizes)
+    const corpoConduta = el('div', 'p-1');
+    corpoConduta.append(
+        el('p', 'text-base font-semibold text-[#7E2F18] m-0 mb-3 leading-relaxed', top.conduta || top.recomendacao || 'Consultar avaliação presencial de médico-veterinário e monitorar evolução do animal.')
     );
-    cardPrincipal.append(caixaRecomendacao);
+    const listaRecomendacoes = el('div', 'p-3.5 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]/80 flex flex-col gap-1.5 text-xs text-[#5F5148]');
+    listaRecomendacoes.append(
+        el('p', 'm-0', '• Isolar o animal em piquete-hospital/confinamento com piso antiderrapante, sombra e água limpa à vontade.'),
+        el('p', 'm-0', '• Monitorar temperatura retal, motilidade ruminal e consumo de alimento a cada 6 a 12 horas.'),
+        el('p', 'm-0', '• Não administrar antimicrobianos sem prévio diagnóstico confirmatório ou indicação de médico-veterinário.')
+    );
+    corpoConduta.append(listaRecomendacoes);
 
-    containerResultado.append(cabecalho, cardPrincipal);
+    const cardConduta = criarSecaoAccordion({
+        eyebrowText: 'MANEJO & RECOMENDAÇÃO SANITÁRIA',
+        titulo: '🩺 Conduta e Recomendações Sanitárias',
+        subtitulo: 'Procedimentos clínicos e operacionais sugeridos para a propriedade',
+        expandidoPadrao: true,
+        conteudoElemento: corpoConduta,
+    });
 
-    // Card "Outras hipóteses" (da 2ª em diante)
+    // 3. Diagnósticos Diferenciais (Comparativo Explicativo + Outras Hipóteses)
+    let cardDiferencial = null;
+    let cardOutrasAccordion = null;
+
     if (hipoteses.length > 1) {
-        const cardOutras = el('div', 'card-bio p-7');
-        cardOutras.append(el('span', 'eyebrow block mb-4', 'OUTRAS HIPÓTESES'));
+        const segundo = hipoteses[1];
+        const pctSegundo = Math.round((segundo.certeza || 0) * 100);
+        const diferenca = pctTop - pctSegundo;
 
+        const corpoDiferencial = el('div', 'p-1');
+        corpoDiferencial.append(
+            el(
+                'p',
+                'text-sm text-[#2A211C] m-0 leading-relaxed',
+                `A hipótese de ${top.doenca} (${pctTop}%) apresentou vantagem de +${diferenca}% em relação a ${segundo.doenca} (${pctSegundo}%), pois os sintomas relatados demonstraram maior compatibilidade com as regras cardinais de ${top.doenca}.`
+            )
+        );
+
+        cardDiferencial = criarSecaoAccordion({
+            eyebrowText: 'ANÁLISE COMPARATIVA',
+            titulo: 'Diagnóstico Diferencial Explicativo',
+            subtitulo: `Comparativo direto entre a 1ª hipótese (${top.doenca}) e a 2ª (${segundo.doenca})`,
+            expandidoPadrao: true,
+            conteudoElemento: corpoDiferencial,
+        });
+
+        // Lista de Outras Hipóteses
+        const listaOutras = el('div', 'flex flex-col gap-3');
         for (let i = 1; i < hipoteses.length; i++) {
             const h = hipoteses[i];
             const pct = Math.round((h.certeza || 0) * 100);
+            const b = obterBadgeClassificacao(h.certeza);
 
-            const bloco = el('div', 'mb-4 last:mb-0');
-            const linhaInfo = el('div', 'flex items-center justify-between text-sm mb-1');
-            linhaInfo.append(
+            const bloco = el('div', 'p-3.5 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]/70');
+            const linhaInfo = el('div', 'flex items-center justify-between text-sm mb-2');
+            const titD = el('div', 'flex items-center gap-2');
+            titD.append(
                 el('span', 'font-semibold text-[#2A211C]', h.doenca),
-                el('span', 'font-semibold text-[#5F5148]', `${pct}%`)
+                el('span', `text-[10px] px-2 py-0.5 rounded-full font-bold ${b.classe}`, `${pct}%`)
             );
+            linhaInfo.append(titD, el('span', 'text-xs text-[#5F5148]', h.pilar || ''));
 
             const trackH = el('div', 'h-2 bg-[#EADFD3] rounded-full overflow-hidden');
             const fillH = el('div', 'h-full bg-[#C98A73] rounded-full');
@@ -425,28 +672,223 @@ function mostrarDiagnostico(resposta) {
             trackH.append(fillH);
 
             bloco.append(linhaInfo, trackH);
-            cardOutras.append(bloco);
+            listaOutras.append(bloco);
         }
-        containerResultado.append(cardOutras);
+
+        cardOutrasAccordion = criarSecaoAccordion({
+            eyebrowText: 'DIAGNÓSTICOS DIFERENCIAIS',
+            titulo: 'Outras Hipóteses Avaliadas',
+            subtitulo: `${hipoteses.length - 1} outras enfermidades avaliadas pelo motor MYCIN durante a triagem`,
+            expandidoPadrao: false,
+            conteudoElemento: listaOutras,
+        });
     }
+
+    // 4. Seções Auxiliares Retráteis (Fechadas por padrão)
+    // Justificativa Clínica (Sinais e Marcadores Observados)
+    const listaEvidencias = el('div', 'flex flex-col gap-2');
+    const passos = top.explicacao && top.explicacao.length > 0 ? top.explicacao : null;
+
+    if (passos) {
+        passos.forEach((p) => {
+            const ehReforco = p.efeito === 'reforca';
+            const linha = el('div', 'bg-[#F7F2EC] rounded-[10px] p-3 text-sm flex items-start sm:items-center justify-between gap-3 border border-[#E7DDD3]/70');
+            const esqLinha = el('div', 'flex flex-col');
+            esqLinha.append(
+                el('span', 'text-[#2A211C] font-semibold text-sm', p.pergunta),
+                el('span', 'text-xs text-[#5F5148] mt-0.5 leading-normal', p.justificativa || (ehReforco ? 'Evidência clínica confirmatória.' : 'Fator de atenuação ou descarte.'))
+            );
+            const badgeEfeito = el(
+                'span',
+                `font-bold text-xs uppercase tracking-wide px-2.5 py-1 rounded-md shrink-0 ${ehReforco ? 'text-[#7E2F18] bg-[#F3E3DA]' : 'text-emerald-800 bg-emerald-100'}`,
+                ehReforco ? 'Confirmou suspeita' : 'Atenuou suspeita'
+            );
+            linha.append(esqLinha, badgeEfeito);
+            listaEvidencias.append(linha);
+        });
+    } else if (top.justificativa && top.justificativa.length > 0) {
+        top.justificativa.forEach((just) => {
+            const linha = el('div', 'bg-[#F7F2EC] rounded-[10px] p-3 text-sm flex items-center justify-between gap-3 border border-[#E7DDD3]/60');
+            linha.append(
+                el('span', 'text-[#2A211C] text-sm leading-normal', String(just)),
+                el('span', 'font-bold text-xs uppercase tracking-wide text-[#7E2F18] bg-[#F3E3DA] px-2.5 py-1 rounded-md shrink-0', 'Confirmou suspeita')
+            );
+            listaEvidencias.append(linha);
+        });
+    } else {
+        const linhaVazia = el('div', 'bg-[#F7F2EC] rounded-[10px] p-3 text-sm text-[#5F5148] italic border border-[#E7DDD3]/60', 'Evidências acumuladas através das respostas fornecidas.');
+        listaEvidencias.append(linhaVazia);
+    }
+
+    const cardEvidencias = criarSecaoAccordion({
+        eyebrowText: 'JUSTIFICATIVA CLÍNICA',
+        titulo: 'Sinais e Marcadores Observados (Por que este diagnóstico?)',
+        subtitulo: 'Sinais que confirmaram a suspeita e regras dedutivas validadas',
+        expandidoPadrao: false,
+        conteudoElemento: listaEvidencias,
+        classeExtra: 'laudo-ocultar-impressao',
+    });
+
+    // Histórico Sequencial Completo de Perguntas da Anamnese (Auditabilidade)
+    let cardHistoricoAccordion = null;
+    if (estado.historico.length > 0) {
+        const tabela = el('div', 'flex flex-col gap-2');
+        estado.historico.forEach((item, index) => {
+            const linhaHist = el('div', 'p-3 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]/70 flex items-start justify-between gap-4');
+            const esqHist = el('div', 'flex flex-col');
+            esqHist.append(
+                el('span', 'text-xs font-bold text-[#9A3F25]', `Pergunta ${index + 1}`),
+                el('p', 'text-sm text-[#2A211C] font-medium m-0 mt-0.5', item.pergunta.texto)
+            );
+            const respPill = el(
+                'span',
+                'px-3 py-1 bg-white border border-[#E7DDD3] rounded-lg text-xs font-bold text-[#7E2F18] shrink-0 mt-1',
+                item.opcao.rotulo
+            );
+            linhaHist.append(esqHist, respPill);
+            tabela.append(linhaHist);
+        });
+
+        cardHistoricoAccordion = criarSecaoAccordion({
+            eyebrowText: 'AUDITORIA DA ANAMNESE',
+            titulo: 'Histórico Sequencial de Perguntas Respondidas',
+            subtitulo: `Registro cronológico completo das ${estado.historico.length} respostas registradas`,
+            expandidoPadrao: false,
+            conteudoElemento: tabela,
+            classeExtra: 'laudo-ocultar-impressao laudo-modulo-historico',
+        });
+    }
+
+    // Trilha Dedutiva de Inferência — Árvore de Decisão
+    const containerCorpoArvore = el('div', 'flex flex-col gap-6');
+    let temRegras = false;
+
+    hipoteses.forEach((h, idx) => {
+        const evidencias = h.explicacao || [];
+        if (evidencias.length === 0) return;
+        temRegras = true;
+
+        const blocoDoenca = el('div', `mb-6 ${idx > 0 ? 'pt-6 border-t border-[#E7DDD3]' : ''}`);
+        const pctH = Math.round((h.certeza || 0) * 100);
+
+        const headerDoenca = el('div', 'flex items-center justify-between mb-4');
+        headerDoenca.append(
+            el('h4', 'text-sm font-bold text-[#7E2F18] m-0', h.doenca),
+            el('span', 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F3E3DA] text-[#7E2F18]', `Certeza Final: ${pctH}%`)
+        );
+        blocoDoenca.append(headerDoenca);
+
+        const containerArvore = el('div', 'arvore-container');
+
+        evidencias.forEach((ev, rIdx) => {
+            const doencaTag = (h.id || h.doenca || '').replace(/[\s/]+/g, '_').substring(0, 14).toUpperCase();
+            const paramTag = (ev.parametro || '').toUpperCase();
+            const ruleId = `R${String(rIdx + 1).padStart(2, '0')}_${doencaTag}_${paramTag}`;
+            const ehReforco = ev.efeito === 'reforca';
+            const cfResp = ev.cf_resposta ?? 0;
+            const cfCrit = ev.cf_criterio ?? 0;
+            const cfAntes = ev.cf_antes != null ? Math.round(ev.cf_antes * 100) : '?';
+            const cfDepois = ev.cf_depois != null ? Math.round(ev.cf_depois * 100) : '?';
+            const respLabel = cfResp > 0 ? 'Sim (Confirmado)' : cfResp === 0 ? 'Não sei (Neutro)' : 'Não (Ausente)';
+            const deltaLabel = (cfCrit >= 0 ? '+' : '') + Math.round(cfCrit * 100) + '%';
+
+            const cardRamo = el('div', 'arvore-ramo');
+            const fluxo = el('div', 'arvore-fluxo');
+
+            // 🟢 Nó 1: Raiz / Marcador Avaliado
+            const noRaiz = el('div', 'arvore-no arvore-no--raiz');
+            noRaiz.append(
+                el('span', 'arvore-badge-meta', '🟢 Marcador Avaliado'),
+                el('span', 'arvore-texto-principal', ev.parametro.replace(/_/g, ' ')),
+                el('span', 'arvore-texto-sub', `Resposta: ${respLabel}`)
+            );
+
+            // ➔ Conector 1
+            const conector1 = el('div', 'arvore-conector', '➔');
+
+            // 🔶 Nó 2: Ramo / Regra Ativada
+            const noRegra = el('div', 'arvore-no arvore-no--regra');
+            noRegra.append(
+                el('span', 'arvore-badge-meta', `Regra [${ruleId}]`),
+                el('span', 'arvore-texto-principal', `SE '${ev.parametro}'`),
+                el('span', 'arvore-texto-sub', `Critério MYCIN: ${cfCrit >= 0 ? '+' : ''}${cfCrit.toFixed(2)}`)
+            );
+
+            // ➔ Conector 2
+            const conector2 = el('div', 'arvore-conector', '➔');
+
+            // 🔵 Nó 3: Folha / Impacto
+            const folhaClasse = ehReforco ? 'arvore-no--folha-reforco' : 'arvore-no--folha-penalidade';
+            const noFolha = el('div', `arvore-no ${folhaClasse}`);
+            noFolha.append(
+                el('span', 'arvore-badge-meta', ehReforco ? '📈 Impacto: Reforço' : '📉 Impacto: Atenuação'),
+                el('span', 'arvore-texto-principal', `${h.doenca} (${deltaLabel})`),
+                el('span', 'arvore-texto-sub', `Certeza: ${cfAntes}% ➔ ${cfDepois}%`)
+            );
+
+            fluxo.append(noRaiz, conector1, noRegra, conector2, noFolha);
+            cardRamo.append(fluxo);
+            containerArvore.append(cardRamo);
+        });
+
+        blocoDoenca.append(containerArvore);
+        containerCorpoArvore.append(blocoDoenca);
+    });
+
+    let cardSintraAccordion = null;
+    if (temRegras) {
+        cardSintraAccordion = criarSecaoAccordion({
+            eyebrowText: 'TRILHA DEDUTIVA DE INFERÊNCIA',
+            titulo: 'Encadeamento de Regras',
+            subtitulo: 'Genealogia visual do raciocínio determinístico: sintomas avaliados interligados às regras disparadas e impacto acumulado',
+            expandidoPadrao: false,
+            conteudoElemento: containerCorpoArvore,
+            classeExtra: 'laudo-ocultar-impressao laudo-modulo-arvore',
+        });
+    }
+
+    // Inserção dos elementos no painel principal
+    containerResultado.append(cabecalho, cardPrincipal, cardConduta);
+    if (cardDiferencial) containerResultado.append(cardDiferencial);
+    if (cardOutrasAccordion) containerResultado.append(cardOutrasAccordion);
+    containerResultado.append(cardEvidencias);
+    if (cardHistoricoAccordion) containerResultado.append(cardHistoricoAccordion);
+    if (cardSintraAccordion) containerResultado.append(cardSintraAccordion);
 
     painelPrincipal.append(containerResultado);
 
-    // Atualiza botões da coluna lateral na tela de resultado
+    // Botões de Ação no Rodapé Lateral (Imprimir + Compartilhar WhatsApp + Nova Anamnese)
     acoesLateral.replaceChildren();
 
-    const btnImprimir = el('button', 'btn-primario w-full text-base flex items-center justify-center gap-2 mb-2', 'Imprimir relatório');
+    // 1. Botão Imprimir / Salvar PDF
+    const btnImprimir = el('button', 'btn-primario w-full text-base flex items-center justify-center gap-2 mb-2', 'Imprimir / Salvar PDF');
     btnImprimir.id = 'btn-imprimir';
     btnImprimir.type = 'button';
     btnImprimir.prepend(icone('imprimir', 'w-5 h-5 text-white', 'Imprimir'));
     btnImprimir.addEventListener('click', () => window.print());
 
+    // 2. Botão Compartilhar via WhatsApp
+    const textoWhatsApp = encodeURIComponent(
+        `*BioExpert — Triagem de Anamnese Bovina*\n\n` +
+        `🐄 *Hipótese Principal:* ${top.doenca} (Indício Estimado: ${pctTop}%)\n` +
+        `📋 *Classificação:* ${badgeTop.rotulo.replace(/🚨|⚠️|🟢/g, '').trim()}\n` +
+        `🩺 *Conduta:* ${top.conduta || top.recomendacao}\n\n` +
+        `_Triagem realizada com ${estado.historico.length} evidências clínicas via regras especializadas._`
+    );
+    const linkWhatsApp = el('a', 'btn-whatsapp w-full h-12 rounded-xl text-base font-semibold flex items-center justify-center gap-2 mb-2 text-decoration-none transition shadow-sm hover:opacity-95');
+    linkWhatsApp.id = 'btn-whatsapp';
+    linkWhatsApp.href = `https://api.whatsapp.com/send?text=${textoWhatsApp}`;
+    linkWhatsApp.target = '_blank';
+    linkWhatsApp.rel = 'noopener noreferrer';
+    linkWhatsApp.append(icone('whatsapp', 'w-5 h-5 text-white', 'WhatsApp'), el('span', '', 'Compartilhar no WhatsApp'));
+
+    // 3. Botão Nova Anamnese
     const btnNova = el('button', 'btn-secundario w-full text-base', 'Nova anamnese');
     btnNova.id = 'btn-reiniciar-resultado';
     btnNova.type = 'button';
     btnNova.addEventListener('click', iniciar);
 
-    acoesLateral.append(btnImprimir, btnNova);
+    acoesLateral.append(btnImprimir, linkWhatsApp, btnNova);
 }
 
 function voltarInicio() {
@@ -474,9 +916,9 @@ btnVerHistorico.addEventListener('click', () => {
     }
 });
 
-navNovaAnamnese.addEventListener('click', iniciar);
+navNovaAnamnese?.addEventListener('click', iniciar);
 
-navHistorico.addEventListener('click', () => {
+navHistorico?.addEventListener('click', () => {
     if (telaAnamnese.classList.contains('hidden')) {
         iniciar();
     } else {
@@ -484,7 +926,11 @@ navHistorico.addEventListener('click', () => {
     }
 });
 
-navBaseRegras.addEventListener('click', () => {
+navBaseRegras?.addEventListener('click', () => {
+    modalBaseRegras?.showModal();
+});
+
+btnAbrirComoFunciona?.addEventListener('click', () => {
     modalBaseRegras?.showModal();
 });
 
@@ -506,5 +952,151 @@ modalBaseRegras?.addEventListener('click', (e) => {
         e.clientX <= rect.left + rect.width;
     if (!isInDialog) {
         modalBaseRegras.close();
+    }
+});
+
+// ---------------------------------------------------------------------------
+// Casos Clínicos de Teste (Demo em 1 Clique) — Simulação Imediata
+// ---------------------------------------------------------------------------
+const CASOS_DEMO = {
+    cetose: {
+        titulo: 'Cetose (Acetonemia)',
+        respostas: {
+            halito_acetona: 's',
+            cetonuria_positiva: 's',
+            perda_condicao_corporal: 's',
+            sinais_nervosos: 's',
+            parto_ultimas_8_semanas: 's',
+            fezes_ressecadas: 's',
+            atonia_ruminal: 's',
+            ruminacao_reduzida: 's',
+        },
+    },
+    hipocalcemia: {
+        titulo: 'Emergência Hipocalcemia',
+        respostas: {
+            decubito_periparto: 's',
+            parto_ultimos_3_dias: 's',
+            tremores_posicao_s: 's',
+            temperatura_baixa: 's',
+            extremidades_frias: 's',
+            atonia_ruminal: 's',
+            apatia: 's',
+            inapetencia: 's',
+        },
+    },
+    mastite: {
+        titulo: 'Mastite Clínica',
+        respostas: {
+            leite_grumos_pus: 's',
+            ubere_inchado_quente: 's',
+            febre: 's',
+            leite_aspecto_normal: 'n',
+            higiene_ordenha_deficiente: 's',
+            queda_producao: 's',
+            inapetencia: 's',
+            ccs_alta: 's',
+        },
+    },
+    mastite: {
+        titulo: 'Mastite Clínica',
+        respostas: {
+            leite_grumos_pus: 's',
+            ubere_inchado_quente: 's',
+            febre: 's',
+            leite_aspecto_normal: 'n',
+            higiene_ordenha_deficiente: 's',
+            queda_producao: 's',
+            inapetencia: 's',
+            ccs_alta: 's',
+        },
+    },
+};
+
+function carregarCasoDemo(chave) {
+    const caso = CASOS_DEMO[chave];
+    if (!caso) return;
+
+    estado.sessao = null;
+    estado.perguntaAtual = null;
+    estado.historico = [];
+    listaHistorico.replaceChildren();
+    painelPrincipal.replaceChildren();
+    acoesLateral.replaceChildren();
+
+    // Injeta perguntas simuladas no histórico lateral para fins de auditoria
+    Object.entries(caso.respostas).forEach(([parametro, opcaoCodigo], idx) => {
+        const rotulo = opcaoCodigo === 's' ? 'Sim' : opcaoCodigo === 'n' ? 'Não' : 'Neutro';
+        const perguntaSimulada = {
+            id: parametro,
+            parametro: parametro,
+            texto: MAPA_ROTULOS[parametro] || parametro.replace(/_/g, ' '),
+        };
+        estado.historico.push({
+            pergunta: perguntaSimulada,
+            opcao: { rotulo, valor: opcaoCodigo },
+        });
+
+        const li = el(
+            'li',
+            'bg-[#F7F2EC] rounded-[10px] py-3 px-4 text-sm text-[#2A211C] flex items-center justify-between gap-3 border border-[#E7DDD3]/80'
+        );
+        li.append(
+            el('span', 'truncate text-sm', `${idx + 1} · ${obterRotuloLegivel(perguntaSimulada)}`),
+            el('span', 'font-bold text-[#7E2F18] shrink-0 text-sm', rotulo)
+        );
+        listaHistorico.append(li);
+    });
+    atualizarHistoricoVazio();
+
+    telaInicio.classList.add('hidden');
+    telaAnamnese.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    executar(async () => {
+        const resultado = await executarCasoDemo(caso.respostas);
+        estado.sessao = resultado.sessionId;
+        return resultado.diagnostico;
+    });
+}
+
+btnDemoCetose?.addEventListener('click', () => carregarCasoDemo('cetose'));
+btnDemoHipocalcemia?.addEventListener('click', () => carregarCasoDemo('hipocalcemia'));
+btnDemoMastite?.addEventListener('click', () => carregarCasoDemo('mastite'));
+
+// ---------------------------------------------------------------------------
+// Painel de Auditoria & Selo da Regra de Ouro (Compliance)
+// ---------------------------------------------------------------------------
+async function abrirPainelAuditoria() {
+    modalAuditoria?.showModal();
+    try {
+        const dados = await obterAuditoriaRegraDeOuro();
+        if (dados && dados.regra_de_ouro) {
+            if (auditoriaDeclaracao) auditoriaDeclaracao.textContent = dados.regra_de_ouro.declaracao_determinismo;
+            if (auditoriaAmbiente) auditoriaAmbiente.textContent = dados.regra_de_ouro.ambiente;
+            if (auditoriaHash) auditoriaHash.textContent = dados.base_conhecimento.sha256;
+            if (auditoriaArquivo) auditoriaArquivo.textContent = `Arquivo: ${dados.base_conhecimento.arquivo} (v${dados.base_conhecimento.versao})`;
+            if (auditoriaRegras) auditoriaRegras.textContent = `${dados.metricas_ciclo.regras_em_memoria} critérios`;
+            if (auditoriaDoencas) auditoriaDoencas.textContent = `${dados.base_conhecimento.total_doencas} cobertas`;
+            if (auditoriaParametros) auditoriaParametros.textContent = `${dados.base_conhecimento.total_parametros} catalogados`;
+        }
+    } catch (e) {
+        console.warn('Falha ao obter auditoria dinâmica, usando dados locais pré-carregados:', e);
+    }
+}
+
+btnAbrirAuditoria?.addEventListener('click', abrirPainelAuditoria);
+btnFecharModalAuditoria?.addEventListener('click', () => modalAuditoria?.close());
+btnEntendidoAuditoria?.addEventListener('click', () => modalAuditoria?.close());
+
+modalAuditoria?.addEventListener('click', (e) => {
+    const rect = modalAuditoria.getBoundingClientRect();
+    const isInDialog =
+        rect.top <= e.clientY &&
+        e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX &&
+        e.clientX <= rect.left + rect.width;
+    if (!isInDialog) {
+        modalAuditoria.close();
     }
 });

@@ -126,7 +126,7 @@ class SessionController:
         resposta = self._validador.validar_resposta(req)
         substituiu = wm.respondido(resposta.parametro)
 
-        # Auditoria primeiro: se o disco falhar, a WM permanece consistente com o DB.
+        # Registra no repositório de histórico na memória RAM e atualiza a Memória de Trabalho (WM)
         self._repo.registrar_resposta(session_id, resposta.parametro, resposta.cf)
         wm.registrar_resposta(resposta.parametro, resposta.cf, resposta.opcao)
 
@@ -185,43 +185,34 @@ class SessionController:
                       "parametros": len(self._kb.parametros), "criterios": len(self._kb.criterios)},
         )
 
-        try:
-            ok = self._db.ping()
-            camadas["camada_5b_db"] = CamadaStatusDTO(
-                pacote="src/db", descricao="Banco de Dados SQLite (histórico auditável)",
-                status="ok" if ok else "erro",
-                detalhes={"arquivo": self._db.caminho.name, "tabelas_ok": ok},
-            )
-        except Exception as exc:
-            camadas["camada_5b_db"] = CamadaStatusDTO(
-                pacote="src/db", descricao="Banco de Dados SQLite", status="erro",
-                detalhes={"erro": str(exc)},
-            )
+        camadas["camada_5b_db"] = CamadaStatusDTO(
+            pacote="src/db", descricao="Armazenamento 100% em Memória RAM (In-Memory)",
+            status="ok",
+            detalhes={"tipo": "In-Memory RAM", "persistente_disco": False},
+        )
 
         saudavel = all(c.status == "ok" for c in camadas.values())
         return saudavel, camadas
 
     # ================================================================ internos
     def _obter_wm(self, session_id: str) -> Tuple[str, WorkingMemory]:
-        """Retorna a WM da sessão, reidratando-a do histórico do DB se necessário.
-
-        A reidratação permite que um reinício do servidor (que zera a RAM) não
-        invalide sessões em andamento: os fatos são reconstruídos a partir do
-        histórico auditável, mantendo a última resposta de cada parâmetro.
-        """
+        """Retorna a WM da sessão ativa em memória RAM."""
         session_id = self._validador.validar_session_id(session_id)
         wm = self._wm_store.obter(session_id)
         if wm is not None:
             return session_id, wm
 
+        # Se não existe na WM e nem no repositório de sessões em memória
         if self._repo.obter_sessao(session_id) is None:
             raise SessaoNaoEncontrada(f"sessão não encontrada: {session_id}")
+
         try:
             wm = self._wm_store.criar(session_id)
-        except KeyError:  # criada concorrentemente por outra requisição
+        except KeyError:
             wm = self._wm_store.obter(session_id)
             assert wm is not None
             return session_id, wm
+
         for registro in self._repo.listar_respostas(session_id):
             if self._kb.parametro(registro.parametro) is not None:
                 wm.registrar_resposta(registro.parametro, registro.valor_cf)

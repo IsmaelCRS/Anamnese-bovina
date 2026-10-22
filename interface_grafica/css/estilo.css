@@ -232,21 +232,350 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Estilos de Impressão                                               */
+/* Badges de Confiança Humanizados (Sem CF)                          */
 /* ------------------------------------------------------------------ */
+.badge-forte {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FCA5A5;
+}
+
+.badge-provavel {
+    background-color: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FCD34D;
+}
+
+.badge-inconclusivo {
+    background-color: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+
+.btn-whatsapp {
+    background-color: #166534;
+    color: #FFFFFF;
+}
+
+.btn-whatsapp:hover {
+    background-color: #14532D;
+}
+
+/* ------------------------------------------------------------------ */
+/* Árvore de Decisão — Encadeamento de Regras & Accordion             */
+/* ------------------------------------------------------------------ */
+.accordion-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover {
+    background-color: #F3E3DA;
+}
+
+.accordion-conteudo {
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+}
+
+.accordion-conteudo.colapsado {
+    display: none;
+}
+
+.arvore-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.arvore-ramo {
+    display: flex;
+    flex-direction: column;
+    background-color: #FFFFFF;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+.arvore-ramo:hover {
+    border-color: #C98A73;
+    box-shadow: 0 4px 12px rgba(154, 63, 37, 0.08);
+}
+
+.arvore-fluxo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .arvore-fluxo {
+        grid-template-columns: 1.1fr auto 1.3fr auto 1.3fr;
+        gap: 12px;
+    }
+}
+
+.arvore-no {
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Nó Raiz / Pergunta (Verde) */
+.arvore-no--raiz {
+    background-color: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    color: #166534;
+}
+
+/* Conector Visual (Seta) */
+.arvore-conector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9A3F25;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Nó Ramo / Regra Ativada (Âmbar / Neutro) */
+.arvore-no--regra {
+    background-color: #FFFBEB;
+    border: 1px solid #FDE68A;
+    color: #92400E;
+}
+
+/* Nó Folha / Impacto (Azul / Destacado) */
+.arvore-no--folha {
+    background-color: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: #1E40AF;
+}
+
+.arvore-no--folha-reforco {
+    background-color: #F0FDF4;
+    border: 1px solid #86EFAC;
+    color: #14532D;
+}
+
+.arvore-no--folha-penalidade {
+    background-color: #FEF2F2;
+    border: 1px solid #FECACA;
+    color: #991B1B;
+}
+
+.arvore-badge-meta {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+}
+
+.arvore-texto-principal {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.arvore-texto-sub {
+    font-size: 11px;
+    opacity: 0.85;
+    line-height: 1.25;
+}
+
+/* ------------------------------------------------------------------ */
+/* Botões Demo em 1 Clique                                            */
+/* ------------------------------------------------------------------ */
+.btn-demo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #F7F2EC;
+    color: #2A211C;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-demo:hover {
+    background-color: #F3E3DA;
+    border-color: #9A3F25;
+    color: #7E2F18;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(154, 63, 37, 0.12);
+}
+
+.btn-demo:active {
+    transform: translateY(0);
+}
+
+/* ------------------------------------------------------------------ */
+/* Selo de Garantia: Regra de Ouro                                    */
+/* ------------------------------------------------------------------ */
+.selo-regra-ouro {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #F0FDF4;
+    border: 1px solid #86EFAC;
+    color: #14532D;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.selo-regra-ouro:hover {
+    background-color: #DCFCE7;
+    border-color: #22C55E;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+    transform: translateY(-1px);
+}
+
+.selo-regra-ouro:active {
+    transform: translateY(0);
+}
+
+/* ------------------------------------------------------------------ */
+/* Estilos de Impressão (Laudo Compacto de Exatamente 2 Páginas A4)   */
+/* ------------------------------------------------------------------ */
+@page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+}
+
 @media print {
-    header, footer, #btn-imprimir, #btn-reiniciar-resultado, #btn-reiniciar-atendimento, nav {
+    /* 1. Ocultar Elementos Pesados, Menus e Botões Interativos */
+    header,
+    footer,
+    nav,
+    dialog,
+    #painel-lateral,
+    #acoes-lateral,
+    #btn-imprimir,
+    #btn-whatsapp,
+    #btn-reiniciar-resultado,
+    #btn-reiniciar-atendimento,
+    .btn-demo,
+    .selo-regra-ouro,
+    .laudo-ocultar-impressao,
+    .laudo-modulo-arvore,
+    .laudo-modulo-historico,
+    .arvore-container,
+    .accordion-header span:last-child {
         display: none !important;
     }
 
-    body {
+    /* 2. Configurações Globais de Renderização */
+    html, body {
         background-color: #FFFFFF !important;
-        color: #000000 !important;
+        background: #FFFFFF !important;
+        color: #1A1A1A !important;
+        font-size: 10pt !important;
+        line-height: 1.35 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    #tela-anamnese {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    #painel-principal {
+        width: 100% !important;
+        display: block !important;
+    }
+
+    /* 3. Cards do Laudo Compactos */
     .card-bio {
         box-shadow: none !important;
-        border: 1px solid #CCCCCC !important;
-        page-break-inside: avoid;
+        border: 1px solid #D1D5DB !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        margin-bottom: 8px !important;
+        background-color: #FFFFFF !important;
+    }
+
+    /* Forçar expansão visual dos accordions incluídos no laudo impresso */
+    .accordion-conteudo {
+        display: block !important;
+        max-height: none !important;
+        opacity: 1 !important;
+        margin-top: 6px !important;
+        padding-top: 6px !important;
+    }
+
+    .accordion-header {
+        cursor: default !important;
+        background: transparent !important;
+        pointer-events: none !important;
+    }
+
+    /* Evitar quebras de página internas indesejadas nos cards */
+    .card-bio {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* 5. Ajustes de Tipografia e Linhas */
+    h1 {
+        font-size: 15pt !important;
+        margin: 0 0 3px 0 !important;
+    }
+
+    h2 {
+        font-size: 13pt !important;
+        margin: 0 0 3px 0 !important;
+    }
+
+    h3 {
+        font-size: 11pt !important;
+        margin: 0 0 2px 0 !important;
+    }
+
+    h4 {
+        font-size: 10pt !important;
+        margin: 0 0 2px 0 !important;
+    }
+
+    p, span, div, li {
+        font-size: 9pt !important;
+        line-height: 1.3 !important;
+    }
+
+    .eyebrow {
+        font-size: 7.5pt !important;
+        margin-bottom: 2px !important;
+    }
+
+    .linha-assinatura {
+        border-top: 1px solid #4B5563 !important;
+        margin-top: 14px !important;
+        padding-top: 4px !important;
     }
 }

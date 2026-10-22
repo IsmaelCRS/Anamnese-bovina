@@ -1,210 +1,945 @@
 {
   "meta": {
-    "nome": "BioExpert / LactaExpert — Base de Conhecimento MVP",
-    "versao": "1.0.0",
-    "descricao": "Catálogo declarativo de parâmetros (perguntas), doenças (prior + urgência) e critérios (doença x parâmetro x CF) para anamnese de bovinos leiteiros em lactação. Consumido pelo Motor de Inferência (src/engine) sem nenhuma lógica procedural embutida.",
-    "aviso": "Priors, urgências e CFs são ILUSTRATIVOS (derivados de codigo_exemplo_base.md e base_regras.clp). Devem ser validados por médico-veterinário antes de qualquer uso real. O sistema NÃO prescreve medicamentos nem dosagens.",
+    "nome": "BioExpert / LactaExpert — Base de Conhecimento Completa",
+    "versao": "3.1.0",
+    "descricao": "Catálogo declarativo de parâmetros (40 perguntas), doenças (8 enfermidades em 4 pilares clínicos, com prior e urgência) e critérios (84 regras doença × parâmetro × CF) para anamnese de bovinos leiteiros em lactação. Consolida a v3.0.0 (priors, urgências e CFs) e a v2.1.0 (nome_kebab), com todos os textos voltados ao usuário reescritos em linguagem de campo. Consumido pelo Motor de Inferência (src/engine) sem lógica procedural embutida.",
+    "aviso": "Priors, urgências e CFs foram calibrados a partir de base_regras.clp e da literatura técnica (Embrapa CT-31, Perissinotto ESALQ/USP, Biosseguridade Leiteira). Devem ser validados por médico-veterinário antes de qualquer uso real. O sistema NÃO prescreve medicamentos nem dosagens e não substitui o atendimento veterinário.",
     "fontes": [
+      "base_regras.clp — LactaExpert v1.0 (CFs, priors, saliências e regras de reforço por enfermidade)",
       "BibliografiaHack/codigo_exemplo_base.md (estruturas parametro/doenca/criterio/resposta, priors e CFs base)",
-      "base_regras.clp — LactaExpert v1.0 (sinais clínicos e pesos de reforço por enfermidade)",
-      "BibliografiaHack/referencias doenças/01_LactaExpert_Especificacao_Clinica.md (pilares clínicos e estratégia MVP)",
-      "BibliografiaHack/referencias doenças/03_Embrapa_Circular_Tecnica_31_Manejo_Sanitario.md (teste da caneca de fundo preto, CMT/CCS)",
-      "BibliografiaHack/referencias doenças/06_Saude_Animal_Riscos_e_Consequencias.md (distúrbios metabólicos)",
-      "RADOSTITS, O. M. et al. Veterinary Medicine. 10. ed. Saunders, 2007."
+      "BibliografiaHack/referencias doenças/01_LactaExpert_Especificacao_Clinica.md (pilares clínicos, estratégia MVP, Fatores de Certeza MYCIN)",
+      "BibliografiaHack/referencias doenças/02_Biosseguridade_Bovinocultura_Leiteira.md (IBR, BVD, Tuberculose, Brucelose, TPB)",
+      "BibliografiaHack/referencias doenças/03_Embrapa_Circular_Tecnica_31_Manejo_Sanitario.md (teste caneca fundo preto, CMT/CCS, controle de carrapatos e TPB)",
+      "BibliografiaHack/referencias doenças/04_Biologia_Epidemiologia_Carrapato_Bovino.md (Rhipicephalus microplus, Babesia bovis/bigemina, Anaplasma marginale)",
+      "BibliografiaHack/referencias doenças/05_Praticas_de_Manejo_Sanitario.md (periparto, higiene, calendário sanitário)",
+      "BibliografiaHack/referencias doenças/06_Saude_Animal_Riscos_e_Consequencias.md (afecções podais: laminite, dermatite digital, erosão de talão; distúrbios metabólicos: cetose, acidose, timpanismo)",
+      "BibliografiaHack/referencias doenças/09_Climatizacao_Inteligente_Bovinos_Leiteiros.md (ITU, FR, TR, estresse calórico — Perissinotto ESALQ/USP)",
+      "RADOSTITS, O. M. et al. Veterinary Medicine. 10. ed. Saunders, 2007.",
+      "regras_novas.txt — revisão de parâmetros, priors, urgências e CFs (v3.0.0)",
+      "Consolidação v3.1.0 — merge das bases v3.0.0 e v2.1.0 e revisão de linguagem das perguntas, ajudas, doenças e justificativas"
     ]
   },
-
   "escala_respostas": [
-    { "codigo": "s", "rotulo": "Sim",                "cf": 1.0 },
-    { "codigo": "p", "rotulo": "Provavelmente sim",  "cf": 0.6 },
-    { "codigo": "?", "rotulo": "Não sei",            "cf": 0.0 },
-    { "codigo": "n", "rotulo": "Não",                "cf": -1.0 }
+    {
+      "codigo": "s",
+      "rotulo": "Sim",
+      "cf": 1.0
+    },
+    {
+      "codigo": "p",
+      "rotulo": "Provavelmente sim",
+      "cf": 0.6
+    },
+    {
+      "codigo": "?",
+      "rotulo": "Não sei",
+      "cf": 0.0
+    },
+    {
+      "codigo": "pn",
+      "rotulo": "Provavelmente não",
+      "cf": -0.6
+    },
+    {
+      "codigo": "n",
+      "rotulo": "Não",
+      "cf": -1.0
+    }
   ],
-
   "classificacao": [
-    { "cf_minimo": 0.80, "rotulo": "Forte indício", "nivel": "alto",  "recomendacao": "Acionar médico-veterinário imediatamente." },
-    { "cf_minimo": 0.40, "rotulo": "Provável",      "nivel": "medio", "recomendacao": "Agendar avaliação veterinária e monitorar a evolução." },
-    { "cf_minimo": -1.0, "rotulo": "Inconclusivo",  "nivel": "baixo", "recomendacao": "Coletar mais evidências clínicas e laboratoriais." }
+    {
+      "cf_minimo": 0.8,
+      "rotulo": "Forte indício",
+      "nivel": "alto",
+      "recomendacao": "Forte indício: acione o médico-veterinário imediatamente."
+    },
+    {
+      "cf_minimo": 0.4,
+      "rotulo": "Provável",
+      "nivel": "medio",
+      "recomendacao": "Provável: agende avaliação veterinária e acompanhe a evolução do animal."
+    },
+    {
+      "cf_minimo": -1.0,
+      "rotulo": "Inconclusivo",
+      "nivel": "baixo",
+      "recomendacao": "Inconclusivo: reúna mais informações (exames, medições, observação do lote) e refaça a anamnese."
+    }
   ],
-
   "criterio_parada": {
-    "min_respostas": 3,
-    "cf_lider_forte": 0.80,
-    "cf_lider_moderado": 0.60,
-    "vantagem_minima": 0.30
+    "min_respostas": 8,
+    "cf_lider_forte": 0.8,
+    "cf_lider_moderado": 0.6,
+    "vantagem_minima": 0.3
   },
-
   "doencas": [
     {
       "id": "mastite_clinica",
-      "nome": "Mastite Clínica",
-      "pilar": "Afecções da Glândula Mamária",
-      "sistema": "Úbere / Leite",
-      "prior": 0.30,
-      "urgencia": 2.0,
-      "descricao": "Inflamação da glândula mamária com alterações visíveis no leite (grumos, pus, sangue, aspecto aquoso) e/ou no úbere (edema, calor, dor).",
-      "conduta": "Isolar a ordenha do animal, realizar teste da caneca de fundo preto em todos os quartos e solicitar avaliação veterinária para coleta de amostra e cultura microbiológica."
+      "nome": "Mastite clínica",
+      "pilar": "Mamario",
+      "sistema": "Úbere e leite",
+      "prior": 0.12,
+      "urgencia": 2.5,
+      "descricao": "Inflamação do úbere com sinais que dá para ver: grumos, pus, sangue ou leite aguado e, muitas vezes, quarto inchado, quente e dolorido. Pode vir com febre e abatimento. Ref.: Embrapa CT-31.",
+      "conduta": "Separe a vaca, ordene-a por último e faça o teste da caneca de fundo preto em todos os tetos. Chame o médico-veterinário para coletar leite para cultura e definir o tratamento, e destine o leite conforme a orientação dele."
     },
     {
-      "id": "cetose",
-      "nome": "Cetose (Acetonemia)",
-      "pilar": "Distúrbios Metabólicos do Periparto",
-      "sistema": "Metabólico",
-      "prior": 0.20,
-      "urgencia": 2.0,
-      "descricao": "Distúrbio do balanço energético negativo no início da lactação, com acúmulo de corpos cetônicos (BHB, acetona) e queda de apetite e produção.",
-      "conduta": "Confirmar com teste de corpos cetônicos (sangue, urina ou leite), revisar o manejo nutricional do período de transição e solicitar avaliação veterinária."
+      "id": "mastite_subclinica",
+      "nome": "Mastite subclínica",
+      "pilar": "Mamario",
+      "sistema": "Úbere e leite",
+      "prior": 0.18,
+      "urgencia": 1.5,
+      "descricao": "Inflamação do úbere sem alteração visível no leite nem no úbere. Só aparece no CMT positivo ou na CCS acima de 200.000 células/mL e causa perda silenciosa de leite e de qualidade. Ref.: Embrapa CT-31.",
+      "conduta": "Faça o CMT em todos os tetos e peça a CCS individual. Anote os quartos que se repetem positivos, revise a rotina de ordenha (pré e pós-dipping) e converse com o veterinário sobre o tratamento na secagem."
     },
     {
       "id": "hipocalcemia",
-      "nome": "Hipocalcemia (Febre do Leite)",
-      "pilar": "Distúrbios Metabólicos do Periparto",
-      "sistema": "Periparto / Postura",
-      "prior": 0.10,
+      "nome": "Hipocalcemia (febre do leite)",
+      "pilar": "Metabolico",
+      "sistema": "Periparto e postura",
+      "prior": 0.08,
       "urgencia": 3.0,
-      "descricao": "Queda aguda do cálcio sanguíneo logo após o parto, levando a fraqueza muscular, decúbito, extremidades frias e atonia ruminal. Emergência metabólica.",
-      "conduta": "EMERGÊNCIA: acionar o médico-veterinário imediatamente. Manter o animal em decúbito esternal (não deixar deitado de lado) em local seguro até o atendimento."
+      "descricao": "Queda brusca do cálcio no sangue logo após o parto. A vaca fica fraca, com tremores, pernas e orelhas frias e rúmen parado, e pode cair sem conseguir levantar. É uma emergência.",
+      "conduta": "EMERGÊNCIA: ligue para o médico-veterinário agora. Até ele chegar, mantenha a vaca apoiada sobre o peito (não deixe deitada de lado), em local seguro, com sombra e piso que não escorregue."
+    },
+    {
+      "id": "cetose",
+      "nome": "Cetose (acetonemia)",
+      "pilar": "Metabolico",
+      "sistema": "Metabólico",
+      "prior": 0.12,
+      "urgencia": 2.0,
+      "descricao": "Falta de energia no começo da lactação: a vaca gasta a gordura do corpo e acumula corpos cetônicos. Come menos, produz menos, emagrece e pode ter hálito de acetona ou sinais nervosos.",
+      "conduta": "Confirme com teste de cetonas (BHB no sangue acima de 1,2 mmol/L, ou fita no leite ou na urina). Revise a dieta e o manejo do período de transição e chame o veterinário para avaliar e orientar o tratamento."
+    },
+    {
+      "id": "acidose_ruminal",
+      "nome": "Acidose ruminal",
+      "pilar": "Metabolico",
+      "sistema": "Digestivo e ruminal",
+      "prior": 0.1,
+      "urgencia": 2.0,
+      "descricao": "Queda do pH do rúmen por excesso de concentrado, troca brusca de ração ou pouca fibra. Causa fezes líquidas e azedas com bolhas, rúmen parado e queda da gordura do leite, e pode levar a problemas de casco (laminite).",
+      "conduta": "Não aumente o concentrado; ofereça volumoso de boa qualidade e água à vontade. Chame o veterinário para avaliar se a acidose é subaguda ou aguda e se precisa de tratamento de suporte, e revise a dieta do lote."
+    },
+    {
+      "id": "tpb",
+      "nome": "Tristeza Parasitária Bovina (TPB)",
+      "pilar": "Infeccioso_Podal",
+      "sistema": "Hemoparasitário",
+      "prior": 0.08,
+      "urgencia": 3.0,
+      "descricao": "Doença do sangue causada por Babesia bovis, Babesia bigemina e Anaplasma marginale, transmitida pelo carrapato Rhipicephalus microplus. Causa febre alta, anemia, mucosas pálidas ou amareladas e urina escura, e pode matar em 24 a 48 horas.",
+      "conduta": "EMERGÊNCIA: ligue para o médico-veterinário agora. Deixe o animal na sombra, quieto e sem estresse. Verifique se há carrapatos no rebanho e se os animais doentes vieram de área livre de carrapato ou não foram premunidos."
+    },
+    {
+      "id": "afeccao_podal",
+      "nome": "Afecção podal (problemas de casco)",
+      "pilar": "Infeccioso_Podal",
+      "sistema": "Locomotor e cascos",
+      "prior": 0.12,
+      "urgencia": 1.5,
+      "descricao": "Problemas nos cascos, como laminite, dermatite digital e erosão de talão. Causam manqueira, queda de leite e sofrimento do animal. Ref.: material 06.",
+      "conduta": "Contenha o animal e examine os cascos com cuidado. Faça casqueamento corretivo se necessário e confira o piso e o pedilúvio. Se há acidose no lote, a laminite pode ter origem na dieta; converse com o veterinário."
+    },
+    {
+      "id": "estresse_termico",
+      "nome": "Estresse térmico (calor)",
+      "pilar": "Ambiencia",
+      "sistema": "Ambiental e fisiológico",
+      "prior": 0.08,
+      "urgencia": 2.0,
+      "descricao": "Desconforto por calor quando o ITU passa de 72: a vaca respira rápido, come menos, produz menos leite e pode ficar com a temperatura elevada. Ref.: Perissinotto, ESALQ/USP.",
+      "conduta": "Ligue ventiladores e aspersores, garanta sombra e água fresca à vontade e evite manejar os animais nas horas mais quentes. Acompanhe a frequência respiratória e a temperatura retal."
     }
   ],
-
   "parametros": [
     {
-      "id": "leite_alterado",
-      "texto": "O leite apresenta grumos, pus, sangue ou aspecto aquoso?",
-      "ajuda": "Observe os primeiros jatos de cada teto antes da ordenha.",
-      "categoria": "Úbere / Leite"
+      "id": "leite_grumos_pus",
+      "nome_kebab": "leite-grumos-pus",
+      "texto": "No teste da caneca de fundo preto, o leite sai com grumos, coágulos, pus ou sangue?",
+      "ajuda": "Ordenhe os primeiros jatos de cada teto no caneco de fundo preto e observe se aparecem grumos, flocos, coágulos, pus ou sangue. Se o teste não foi feito, responda “Não sei”.",
+      "categoria": "Úbere e leite"
     },
     {
-      "id": "caneca_positiva",
-      "texto": "O teste da caneca de fundo preto (ou telada) foi positivo, com grumos retidos?",
-      "ajuda": "Teste de triagem recomendado pela Embrapa (Circular Técnica 31) a cada ordenha.",
-      "categoria": "Úbere / Leite"
+      "id": "leite_aspecto_normal",
+      "nome_kebab": "leite-aspecto-normal",
+      "texto": "No mesmo teste, o leite dos quatro tetos está totalmente normal (sem grumos, flocos, pus, sangue ou aspecto aguado)?",
+      "ajuda": "Responda “Sim” só se os quatro tetos estiverem limpos. Leite normal no caneco não descarta mastite subclínica; nesse caso, o CMT e a CCS ajudam.",
+      "categoria": "Úbere e leite"
     },
     {
-      "id": "ubere_inchado",
-      "texto": "O úbere (ou algum quarto) está inchado, quente ou dolorido ao toque?",
-      "ajuda": "Compare os quatro quartos mamários entre si.",
-      "categoria": "Úbere / Leite"
+      "id": "ubere_inchado_quente",
+      "nome_kebab": "ubere-inchado-quente",
+      "texto": "Algum quarto do úbere está inchado, quente, vermelho ou dolorido quando você toca?",
+      "ajuda": "Compare os quatro quartos entre si, com a palma da mão e sem apertar forte. Um quarto mais duro, mais quente ou que a vaca não deixa tocar conta como “Sim”.",
+      "categoria": "Úbere e leite"
     },
     {
-      "id": "queda_producao",
-      "texto": "Houve queda na produção de leite nos últimos dias?",
-      "ajuda": "Considere a produção habitual do animal.",
-      "categoria": "Produção"
+      "id": "cmt_positivo",
+      "nome_kebab": "cmt-positivo",
+      "texto": "O CMT (teste da raquete) deu reação positiva, com o leite engrossando ou formando gel, em algum teto?",
+      "ajuda": "Reação 2+ ou 3+ (leite espesso ou em gel) é positiva. Se o CMT não foi feito, responda “Não sei”.",
+      "categoria": "Úbere e leite"
+    },
+    {
+      "id": "ccs_alta",
+      "nome_kebab": "ccs-alta",
+      "texto": "O último resultado de CCS (contagem de células somáticas) desta vaca passou de 200.000 células/mL?",
+      "ajuda": "Use o laudo do laboratório ou o controle leiteiro individual da vaca, e não o resultado do tanque. Sem resultado recente, responda “Não sei”.",
+      "categoria": "Úbere e leite"
+    },
+    {
+      "id": "higiene_ordenha_deficiente",
+      "nome_kebab": "higiene-ordenha-deficiente",
+      "texto": "A rotina de ordenha tem falhas de higiene, como falta de pré ou pós-dipping, teteiras mal limpas ou cama suja?",
+      "ajuda": "Pense na última semana: tetos não secos antes da teteira, desinfetante não aplicado nos tetos, equipamento sujo ou cama molhada e suja contam como “Sim”.",
+      "categoria": "Manejo e ordenha"
     },
     {
       "id": "febre",
-      "texto": "A temperatura retal está acima de 39,5 °C?",
-      "ajuda": "Faixa normal de bovinos adultos: 38,0 °C a 39,3 °C.",
+      "nome_kebab": "febre",
+      "texto": "A temperatura retal da vaca está acima de 39,5 °C?",
+      "ajuda": "Use termômetro clínico veterinário, encostado na parede do reto por cerca de 1 minuto (o digital, até apitar). O normal vai de 38,0 a 39,3 °C. Se não mediu, responda “Não sei”.",
       "categoria": "Sinais vitais"
     },
     {
-      "id": "halito_cetonico",
-      "texto": "O animal tem hálito, leite ou urina com odor de acetona (cheiro adocicado/frutado)?",
-      "ajuda": "Nem todas as pessoas conseguem perceber o odor de acetona.",
-      "categoria": "Metabólico"
+      "id": "temperatura_baixa",
+      "nome_kebab": "temperatura-baixa",
+      "texto": "A temperatura retal da vaca está abaixo de 37,5 °C?",
+      "ajuda": "Meça da mesma forma que a febre. Temperatura baixa é comum em vaca caída por falta de cálcio. Se não mediu, responda “Não sei”.",
+      "categoria": "Sinais vitais"
     },
     {
-      "id": "reduz_apetite",
-      "texto": "Houve redução do apetite, especialmente recusa do concentrado?",
-      "ajuda": "Observe a sobra de alimento no cocho.",
-      "categoria": "Comportamento / Alimentação"
+      "id": "queda_producao",
+      "nome_kebab": "queda-producao",
+      "texto": "A produção de leite desta vaca caiu em relação ao normal dela?",
+      "ajuda": "Compare com a média dos últimos dias. Queda repentina ou gradual vale como “Sim”.",
+      "categoria": "Produção"
     },
     {
-      "id": "inicio_lactacao",
-      "texto": "O animal está entre a 1ª e a 8ª semana de lactação (até 60 dias pós-parto)?",
-      "ajuda": "Período de maior balanço energético negativo.",
-      "categoria": "Histórico reprodutivo"
+      "id": "inapetencia",
+      "nome_kebab": "inapetencia",
+      "texto": "A vaca está comendo menos que o normal?",
+      "ajuda": "Olhe a sobra no cocho, a recusa de concentrado ou o pouco tempo se alimentando.",
+      "categoria": "Comportamento e alimentação"
     },
     {
-      "id": "perda_condicao",
-      "texto": "Houve perda rápida de peso ou de escore de condição corporal?",
-      "ajuda": "Ex.: escore corporal caindo para abaixo de 2,5 (escala 1–5).",
-      "categoria": "Metabólico"
+      "id": "apatia",
+      "nome_kebab": "apatia",
+      "texto": "A vaca está apática, abatida ou isolada do lote?",
+      "ajuda": "Cabeça baixa, orelhas caídas, pouco interesse no que acontece ao redor ou afastada das outras vacas.",
+      "categoria": "Comportamento e alimentação"
     },
     {
-      "id": "corpos_cetonicos",
-      "texto": "Um teste de corpos cetônicos (BHB no sangue > 1,2 mmol/L, fita de urina ou leite) deu positivo?",
-      "ajuda": "Responda 'Não sei' se o teste não foi realizado.",
-      "categoria": "Exame complementar"
+      "id": "decubito_periparto",
+      "nome_kebab": "decubito-periparto",
+      "texto": "A vaca está deitada e não consegue se levantar, no parto ou até 3 dias depois dele?",
+      "ajuda": "Vale para a vaca que continua deitada mesmo quando é estimulada a levantar. Se ela levanta e anda normalmente, responda “Não”.",
+      "categoria": "Periparto e histórico"
     },
     {
-      "id": "sinais_nervosos",
-      "texto": "O animal apresenta sinais nervosos (andar cambaleante, lamber objetos compulsivamente, agressividade)?",
-      "ajuda": "Característicos da forma nervosa da cetose.",
-      "categoria": "Neurológico"
+      "id": "parto_ultimos_3_dias",
+      "nome_kebab": "parto-ultimos-3-dias",
+      "texto": "A vaca pariu nos últimos 3 dias?",
+      "ajuda": "Confira a data do parto na ficha individual ou no calendário reprodutivo.",
+      "categoria": "Periparto e histórico"
     },
     {
-      "id": "parto_72h",
-      "texto": "Ocorreu parto nas últimas 72 horas?",
-      "ajuda": "A maioria dos casos de hipocalcemia clínica ocorre nas primeiras 72 h pós-parto.",
-      "categoria": "Histórico reprodutivo"
+      "id": "parto_ultimas_8_semanas",
+      "nome_kebab": "parto-ultimas-8-semanas",
+      "texto": "A vaca pariu nas últimas 8 semanas (cerca de 2 meses)?",
+      "ajuda": "É a fase em que a vaca gasta mais energia do que consegue comer, com maior risco de problemas metabólicos. Confira a data do parto na ficha.",
+      "categoria": "Periparto e histórico"
     },
     {
-      "id": "decubito",
-      "texto": "O animal está deitado e não consegue se levantar?",
-      "ajuda": "Vaca caída / decúbito esternal ou lateral.",
-      "categoria": "Postura / Locomoção"
+      "id": "dias_lactacao_acima_60",
+      "nome_kebab": "dias-lactacao-acima-60",
+      "texto": "A vaca está há mais de 60 dias em lactação?",
+      "ajuda": "Conte os dias desde a data do último parto até hoje.",
+      "categoria": "Periparto e histórico"
     },
     {
-      "id": "cabeca_flanco",
-      "texto": "O animal mantém a cabeça voltada para o flanco (postura de auto-auscultação)?",
-      "ajuda": "Postura característica da paresia puerperal.",
-      "categoria": "Postura / Locomoção"
+      "id": "tremores_posicao_s",
+      "nome_kebab": "tremores-posicao-s",
+      "texto": "A vaca tem tremores nos músculos, fraqueza nas pernas ou fica com a cabeça virada para o flanco, com o pescoço em “S”?",
+      "ajuda": "Pernas bambas, tremor nos músculos ou cabeça encostada na lateral do corpo, formando um “S” no pescoço, são sinais de falta de cálcio.",
+      "categoria": "Periparto e histórico"
     },
     {
       "id": "extremidades_frias",
-      "texto": "As orelhas e extremidades estão frias (temperatura corporal baixa)?",
-      "ajuda": "Hipotermia periférica, geralmente com temperatura retal abaixo de 38 °C.",
+      "nome_kebab": "extremidades-frias",
+      "texto": "As orelhas e a parte de baixo das pernas estão frias ao toque?",
+      "ajuda": "Toque as orelhas e as pernas e compare com a temperatura do corpo. Faça de preferência à sombra, para o sol não enganar.",
       "categoria": "Sinais vitais"
     },
     {
-      "id": "tremores_fraqueza",
-      "texto": "Há tremores musculares, fraqueza ou cambaleio ao andar?",
-      "ajuda": "Fase inicial (em estação) da hipocalcemia.",
-      "categoria": "Postura / Locomoção"
-    },
-    {
       "id": "atonia_ruminal",
-      "texto": "Os movimentos do rúmen estão ausentes ou muito reduzidos (sem ruminação)?",
-      "ajuda": "Palpe/ausculte a fossa paralombar esquerda por 2 minutos.",
-      "categoria": "Digestivo"
+      "nome_kebab": "atonia-ruminal",
+      "texto": "O rúmen (lado esquerdo) está parado, sem movimento nem barulho, durante 2 minutos?",
+      "ajuda": "Fique do lado esquerdo e coloque a mão ou o ouvido no “vazio” atrás das últimas costelas por 2 minutos. Em vaca saudável há movimentos regulares nesse tempo.",
+      "categoria": "Digestivo e ruminal"
     },
     {
-      "id": "multipara",
-      "texto": "A vaca já teve três ou mais partos?",
-      "ajuda": "Vacas mais velhas mobilizam cálcio com menos eficiência.",
-      "categoria": "Histórico reprodutivo"
+      "id": "halito_acetona",
+      "nome_kebab": "halito-acetona",
+      "texto": "O hálito, o leite ou a urina têm cheiro adocicado de acetona (removedor de esmalte)?",
+      "ajuda": "É um cheiro adocicado e frutado. Nem todas as pessoas sentem; se você não tem certeza, responda “Provavelmente sim” ou “Não sei”.",
+      "categoria": "Metabólico"
+    },
+    {
+      "id": "cetonuria_positiva",
+      "nome_kebab": "cetonuria-positiva",
+      "texto": "A fita de teste de cetonas (no leite ou na urina) deu resultado positivo?",
+      "ajuda": "Use fita própria para cetonas e siga o tempo de leitura da embalagem. Se o teste não foi feito, responda “Não sei”.",
+      "categoria": "Exames complementares"
+    },
+    {
+      "id": "perda_condicao_corporal",
+      "nome_kebab": "perda-condicao-corporal",
+      "texto": "A vaca emagreceu rápido depois do parto, com costelas e ossos da garupa aparecendo?",
+      "ajuda": "Compare com a condição que ela tinha antes do parto. Queda rápida de condição corporal vale como “Sim”.",
+      "categoria": "Metabólico"
+    },
+    {
+      "id": "fezes_ressecadas",
+      "nome_kebab": "fezes-ressecadas",
+      "texto": "As fezes estão firmes, ressecadas e em pequena quantidade?",
+      "ajuda": "Fezes duras e secas, às vezes em bolotas, e em menor volume que o normal.",
+      "categoria": "Digestivo e ruminal"
+    },
+    {
+      "id": "sinais_nervosos",
+      "nome_kebab": "sinais-nervosos",
+      "texto": "A vaca está agitada, lambendo-se ou lambendo objetos sem parar, andando em círculos ou com o andar cambaleante?",
+      "ajuda": "Agitação, lambedura exagerada de si ou de objetos, andar em círculos ou perda de equilíbrio.",
+      "categoria": "Metabólico"
+    },
+    {
+      "id": "fezes_liquidas_bolhas",
+      "nome_kebab": "fezes-liquidas-bolhas",
+      "texto": "As fezes estão líquidas ou pastosas, com cheiro azedo e bolhas de gás?",
+      "ajuda": "Fezes moles ou aguadas, de cheiro azedo e com pequenas bolhas na superfície.",
+      "categoria": "Digestivo e ruminal"
+    },
+    {
+      "id": "ph_ruminal_baixo",
+      "nome_kebab": "ph-ruminal-baixo",
+      "texto": "O pH do líquido do rúmen foi medido e está abaixo de 5,6?",
+      "ajuda": "Só responda “Sim” ou “Não” se o veterinário coletou e mediu o líquido ruminal. Se o pH não foi medido, responda “Não sei”.",
+      "categoria": "Exames complementares"
+    },
+    {
+      "id": "dieta_excesso_concentrado",
+      "nome_kebab": "dieta-excesso-concentrado",
+      "texto": "A dieta recente teve excesso de concentrado, troca brusca de ração ou pouca fibra (volumoso picado muito fino)?",
+      "ajuda": "Pense nos últimos dias: aumento rápido de ração, mudança repentina de dieta ou capim e silagem muito picados contam como “Sim”.",
+      "categoria": "Digestivo e ruminal"
+    },
+    {
+      "id": "ruminacao_reduzida",
+      "nome_kebab": "ruminacao-reduzida",
+      "texto": "A ruminação está reduzida (menos de 300 min por dia, ou poucas vacas do lote ruminando deitadas)?",
+      "ajuda": "Se há colar de monitoramento, use o tempo de ruminação. Sem ele, observe o lote em repouso: em condição normal, a maioria das vacas deitadas está ruminando.",
+      "categoria": "Digestivo e ruminal"
+    },
+    {
+      "id": "gordura_leite_baixa",
+      "nome_kebab": "gordura-leite-baixa",
+      "texto": "A gordura do leite está baixa, abaixo de 3%?",
+      "ajuda": "Veja no laudo de qualidade do leite ou no controle leiteiro. Se não tem o dado, responda “Não sei”.",
+      "categoria": "Produção"
+    },
+    {
+      "id": "mucosas_palidas_ictericas",
+      "nome_kebab": "mucosas-palidas-ictericas",
+      "texto": "As mucosas (olho, gengiva, parte interna da vulva) estão pálidas ou amareladas?",
+      "ajuda": "Levante a pálpebra ou o lábio e observe a cor. Rosa claro ou branco indica anemia; amarelo indica icterícia. A cor normal é rosada.",
+      "categoria": "Sangue e parasitas"
+    },
+    {
+      "id": "carrapatos_presentes",
+      "nome_kebab": "carrapatos-presentes",
+      "texto": "Há carrapatos visíveis no animal, em quantidade moderada ou alta?",
+      "ajuda": "Procure na virilha, no úbere, na barbela, nas axilas e embaixo da cauda.",
+      "categoria": "Sangue e parasitas"
+    },
+    {
+      "id": "urina_escura",
+      "nome_kebab": "urina-escura",
+      "texto": "A urina está escura, cor de café ou avermelhada?",
+      "ajuda": "Urina cor de café ou avermelhada sugere sangue dissolvido (hemoglobinúria). Se não viu a vaca urinar, responda “Não sei”.",
+      "categoria": "Sangue e parasitas"
+    },
+    {
+      "id": "animal_sem_premunicao",
+      "nome_kebab": "animal-sem-premunicao",
+      "texto": "O animal veio há pouco de região sem carrapato, ou é bezerra ou novilha que nunca teve contato com carrapato?",
+      "ajuda": "Animais que nunca tiveram contato com o carrapato não desenvolveram defesa e adoecem com mais facilidade.",
+      "categoria": "Sangue e parasitas"
+    },
+    {
+      "id": "claudicacao",
+      "nome_kebab": "claudicacao",
+      "texto": "A vaca manca ou apoia pouco algum dos membros ao andar?",
+      "ajuda": "Observe a vaca andando em piso firme e plano. Passos curtos, cabeça balançando ou relutância em andar contam como “Sim”.",
+      "categoria": "Locomotor e cascos"
+    },
+    {
+      "id": "lesao_casco_visivel",
+      "nome_kebab": "lesao-casco-visivel",
+      "texto": "Há lesão visível no casco, entre os dedos ou no talão (ferida, erosão, úlcera, pele esbranquiçada ou com aspecto de “morango”)?",
+      "ajuda": "Examine o casco, o espaço entre os dedos e o talão com o animal contido. Se não foi possível olhar, responda “Não sei”.",
+      "categoria": "Locomotor e cascos"
+    },
+    {
+      "id": "casco_calor_dor",
+      "nome_kebab": "casco-calor-dor",
+      "texto": "Há calor, inchaço ou dor no casco ou na coroa do casco (região logo acima dele)?",
+      "ajuda": "Passe a mão no casco e na coroa e compare com os outros membros. Se a vaca puxa a pata ao toque, há dor.",
+      "categoria": "Locomotor e cascos"
+    },
+    {
+      "id": "piso_umido_lama",
+      "nome_kebab": "piso-umido-lama",
+      "texto": "As vacas circulam em piso úmido, com lama ou esterco acumulado, ou o casqueamento está atrasado?",
+      "ajuda": "Avalie os corredores, a saída da ordenha e a data do último casqueamento do lote.",
+      "categoria": "Ambiência e manejo"
+    },
+    {
+      "id": "itu_alto",
+      "nome_kebab": "itu-alto",
+      "texto": "O dia está muito quente e úmido (ITU acima de 72)?",
+      "ajuda": "O ITU combina temperatura e umidade do ar. Use termo-higrômetro ou aplicativo de clima. Sem medição, se o dia está muito quente e abafado, responda “Provavelmente sim”.",
+      "categoria": "Ambiência e manejo"
+    },
+    {
+      "id": "frequencia_respiratoria_alta",
+      "nome_kebab": "frequencia-respiratoria-alta",
+      "texto": "A vaca está ofegante, respirando mais de 60 vezes por minuto ou de boca aberta?",
+      "ajuda": "Com a vaca parada e à sombra, conte por 1 minuto quantas vezes o flanco sobe e desce. Mais de 60 é respiração acelerada.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "sem_sombra_ventilacao",
+      "nome_kebab": "sem-sombra-ventilacao",
+      "texto": "Nas horas quentes os animais ficam sem sombra, ventilação ou aspersão?",
+      "ajuda": "Avalie sombra, ventiladores e aspersores no horário mais quente do dia.",
+      "categoria": "Ambiência e manejo"
+    },
+    {
+      "id": "varios_animais_afetados",
+      "nome_kebab": "varios-animais-afetados",
+      "texto": "Vários animais do lote têm o mesmo problema ao mesmo tempo?",
+      "ajuda": "Observe se outras vacas do lote ou do piquete mostram os mesmos sinais agora.",
+      "categoria": "Rebanho"
     }
   ],
-
   "criterios": [
-    { "doenca": "mastite_clinica", "parametro": "leite_alterado",     "cf":  0.70, "justificativa": "Leite com grumos, pus ou aquoso é o sinal cardinal da mastite clínica." },
-    { "doenca": "mastite_clinica", "parametro": "ubere_inchado",      "cf":  0.70, "justificativa": "Edema, calor e dor no úbere indicam processo inflamatório mamário." },
-    { "doenca": "mastite_clinica", "parametro": "caneca_positiva",    "cf":  0.65, "justificativa": "Grumos retidos na caneca de fundo preto confirmam alteração clínica do leite." },
-    { "doenca": "mastite_clinica", "parametro": "queda_producao",     "cf":  0.30, "justificativa": "Dano ao tecido mamário reduz a produção do quarto afetado." },
-    { "doenca": "mastite_clinica", "parametro": "febre",              "cf":  0.20, "justificativa": "Febre indica resposta sistêmica (mastite clínica aguda)." },
-    { "doenca": "mastite_clinica", "parametro": "reduz_apetite",      "cf":  0.10, "justificativa": "Casos agudos podem cursar com redução de ingestão." },
-
-    { "doenca": "cetose", "parametro": "halito_cetonico",   "cf":  0.80, "justificativa": "Odor de acetona no hálito/leite/urina é sinal patognomônico de cetose." },
-    { "doenca": "cetose", "parametro": "corpos_cetonicos",  "cf":  0.75, "justificativa": "BHB > 1,2 mmol/L ou corpos cetônicos positivos confirmam laboratorialmente." },
-    { "doenca": "cetose", "parametro": "reduz_apetite",     "cf":  0.40, "justificativa": "Recusa do concentrado é típica do balanço energético negativo." },
-    { "doenca": "cetose", "parametro": "queda_producao",    "cf":  0.30, "justificativa": "Queda abrupta na produção de leite acompanha a cetose." },
-    { "doenca": "cetose", "parametro": "inicio_lactacao",   "cf":  0.30, "justificativa": "Primeiros 60 dias de lactação concentram o risco de cetose." },
-    { "doenca": "cetose", "parametro": "perda_condicao",    "cf":  0.30, "justificativa": "Perda de escore corporal indica mobilização excessiva de reservas." },
-    { "doenca": "cetose", "parametro": "sinais_nervosos",   "cf":  0.25, "justificativa": "Sinais nervosos podem indicar a forma nervosa da cetose." },
-    { "doenca": "cetose", "parametro": "parto_72h",         "cf":  0.10, "justificativa": "Pós-parto imediato já inicia o período de risco metabólico." },
-    { "doenca": "cetose", "parametro": "febre",             "cf": -0.20, "justificativa": "Cetose primária cursa sem febre; febre sugere outra causa." },
-
-    { "doenca": "hipocalcemia", "parametro": "decubito",           "cf":  0.80, "justificativa": "Vaca caída no periparto é altamente sugestiva de hipocalcemia." },
-    { "doenca": "hipocalcemia", "parametro": "cabeca_flanco",      "cf":  0.60, "justificativa": "Cabeça voltada para o flanco é postura característica da paresia puerperal." },
-    { "doenca": "hipocalcemia", "parametro": "parto_72h",          "cf":  0.50, "justificativa": "A maioria dos casos ocorre nas primeiras 72 h pós-parto." },
-    { "doenca": "hipocalcemia", "parametro": "extremidades_frias", "cf":  0.40, "justificativa": "Hipotermia periférica é sinal clássico da hipocalcemia." },
-    { "doenca": "hipocalcemia", "parametro": "tremores_fraqueza",  "cf":  0.40, "justificativa": "Tremores e fraqueza marcam o estágio inicial (em estação)." },
-    { "doenca": "hipocalcemia", "parametro": "atonia_ruminal",     "cf":  0.30, "justificativa": "O cálcio é necessário para a contração do rúmen; sua falta causa atonia." },
-    { "doenca": "hipocalcemia", "parametro": "multipara",          "cf":  0.20, "justificativa": "Vacas com 3+ partos têm maior predisposição." },
-    { "doenca": "hipocalcemia", "parametro": "queda_producao",     "cf":  0.10, "justificativa": "Queda súbita de produção acompanha o quadro agudo." },
-    { "doenca": "hipocalcemia", "parametro": "inicio_lactacao",    "cf":  0.10, "justificativa": "Início de lactação aumenta a demanda de cálcio." },
-    { "doenca": "hipocalcemia", "parametro": "febre",              "cf": -0.40, "justificativa": "Febre é incompatível com hipocalcemia, que cursa com hipotermia." }
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "leite_grumos_pus",
+      "cf": 0.75,
+      "justificativa": "Grumos, coágulos, pus ou sangue no caneco de fundo preto são o sinal principal da mastite clínica (Embrapa CT-31)."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "ubere_inchado_quente",
+      "cf": 0.4,
+      "justificativa": "Úbere inchado, quente ou dolorido indica inflamação ativa no quarto afetado."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "febre",
+      "cf": 0.3,
+      "justificativa": "Febre mostra que a infecção atingiu o organismo todo, o que é comum em casos agudos."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "leite_aspecto_normal",
+      "cf": -0.6,
+      "justificativa": "Leite totalmente normal no caneco vai contra mastite clínica, que por definição altera o leite."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "higiene_ordenha_deficiente",
+      "cf": 0.15,
+      "justificativa": "Falhas de higiene na ordenha facilitam a entrada de bactérias no úbere; é fator de risco, não prova."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "queda_producao",
+      "cf": 0.1,
+      "justificativa": "A inflamação reduz a produção do quarto afetado, mas leite em queda também aparece em muitas outras doenças."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "inapetencia",
+      "cf": 0.1,
+      "justificativa": "Casos agudos podem reduzir o apetite; sinal fraco e pouco específico."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "apatia",
+      "cf": 0.1,
+      "justificativa": "Casos agudos podem deixar a vaca abatida; sinal fraco e pouco específico."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "ccs_alta",
+      "cf": 0.2,
+      "justificativa": "CCS alta confirma inflamação do úbere, mas sozinha não separa a forma clínica da subclínica."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "cmt_positivo",
+      "cf": 0.2,
+      "justificativa": "CMT positivo confirma inflamação do úbere, mas sozinho não separa a forma clínica da subclínica."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "cmt_positivo",
+      "cf": 0.75,
+      "justificativa": "CMT positivo com leite de aspecto normal é o achado típico da mastite subclínica (Embrapa CT-31)."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "ccs_alta",
+      "cf": 0.7,
+      "justificativa": "CCS acima de 200.000 células/mL é o principal critério de laboratório da mastite subclínica (Embrapa CT-31)."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "leite_aspecto_normal",
+      "cf": 0.1,
+      "justificativa": "Leite de aspecto normal é compatível com a forma subclínica, em que a alteração só aparece nos exames."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "higiene_ordenha_deficiente",
+      "cf": 0.15,
+      "justificativa": "Falhas de higiene favorecem a passagem de bactérias contagiosas de uma vaca para outra."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "varios_animais_afetados",
+      "cf": 0.2,
+      "justificativa": "Vários animais afetados sugerem problema do rebanho, típico das mastites contagiosas."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "queda_producao",
+      "cf": 0.1,
+      "justificativa": "A perda de leite é silenciosa e gradual na forma subclínica."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "leite_grumos_pus",
+      "cf": -0.4,
+      "justificativa": "Grumos, pus ou sangue indicam a forma clínica, não a subclínica."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "ubere_inchado_quente",
+      "cf": -0.3,
+      "justificativa": "Úbere inchado, quente ou dolorido indica a forma clínica."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "febre",
+      "cf": -0.3,
+      "justificativa": "Febre indica quadro geral do organismo, que não combina com mastite subclínica."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "decubito_periparto",
+      "cf": 0.8,
+      "justificativa": "Vaca deitada que não consegue levantar no parto ou até 3 dias depois é o sinal principal da hipocalcemia."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "parto_ultimos_3_dias",
+      "cf": 0.3,
+      "justificativa": "A maioria dos casos ocorre nas primeiras 72 horas após o parto, quando o leite mais exige cálcio."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "tremores_posicao_s",
+      "cf": 0.45,
+      "justificativa": "Tremores, fraqueza nas pernas e pescoço em “S” são sinais clássicos de falta de cálcio."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "temperatura_baixa",
+      "cf": 0.4,
+      "justificativa": "A temperatura retal costuma ficar abaixo do normal na hipocalcemia clínica."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "extremidades_frias",
+      "cf": 0.35,
+      "justificativa": "Orelhas e pernas frias refletem a má circulação causada pela falta de cálcio."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "atonia_ruminal",
+      "cf": 0.3,
+      "justificativa": "O cálcio é necessário para a contração do rúmen; sem ele, o rúmen para."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "apatia",
+      "cf": 0.1,
+      "justificativa": "A fraqueza geral deixa a vaca abatida; sinal fraco."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "inapetencia",
+      "cf": 0.1,
+      "justificativa": "Vaca com falta de cálcio come pouco ou nada; sinal fraco."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "febre",
+      "cf": -0.5,
+      "justificativa": "Febre não combina com hipocalcemia, que cursa com temperatura normal ou baixa; sugere infecção."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "dias_lactacao_acima_60",
+      "cf": -0.4,
+      "justificativa": "Vaca com mais de 60 dias de lactação tem risco muito baixo de hipocalcemia."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "fezes_liquidas_bolhas",
+      "cf": -0.15,
+      "justificativa": "Fezes líquidas com bolhas apontam para problema digestivo, não para falta de cálcio."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "halito_acetona",
+      "cf": 0.8,
+      "justificativa": "Cheiro de acetona no hálito, no leite ou na urina é o sinal clínico mais característico da cetose."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "cetonuria_positiva",
+      "cf": 0.75,
+      "justificativa": "Fita de cetonas positiva confirma o acúmulo de corpos cetônicos."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "perda_condicao_corporal",
+      "cf": 0.35,
+      "justificativa": "Perda rápida de condição corporal mostra que a vaca gasta mais gordura do corpo do que consegue repor. Ref. 06."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "sinais_nervosos",
+      "cf": 0.4,
+      "justificativa": "Agitação, lambedura exagerada e andar cambaleante ocorrem na forma nervosa da cetose."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "parto_ultimas_8_semanas",
+      "cf": 0.3,
+      "justificativa": "A cetose se concentra nas primeiras semanas após o parto, quando o déficit de energia é maior."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "fezes_ressecadas",
+      "cf": 0.25,
+      "justificativa": "Fezes firmes e em pouca quantidade acompanham a menor ingestão de alimento."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "atonia_ruminal",
+      "cf": 0.3,
+      "justificativa": "Rúmen parado é achado frequente na cetose."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "ruminacao_reduzida",
+      "cf": 0.2,
+      "justificativa": "A ruminação cai junto com o apetite."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "inapetencia",
+      "cf": 0.15,
+      "justificativa": "Recusa de alimento, sobretudo de concentrado, é comum na cetose."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "queda_producao",
+      "cf": 0.1,
+      "justificativa": "A queda de produção é consequência do déficit de energia."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "febre",
+      "cf": -0.3,
+      "justificativa": "Cetose primária cursa sem febre; febre sugere outra causa, como infecção."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "fezes_liquidas_bolhas",
+      "cf": -0.25,
+      "justificativa": "Fezes líquidas com bolhas sugerem acidose, não cetose."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "dias_lactacao_acima_60",
+      "cf": -0.4,
+      "justificativa": "Vaca com mais de 60 dias de lactação já saiu do período de maior risco de cetose."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "ph_ruminal_baixo",
+      "cf": 0.8,
+      "justificativa": "pH do rúmen abaixo de 5,6 confirma acidose ruminal. Ref. 06."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "fezes_liquidas_bolhas",
+      "cf": 0.7,
+      "justificativa": "Fezes líquidas, azedas e com bolhas indicam fermentação ácida excessiva."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "dieta_excesso_concentrado",
+      "cf": 0.4,
+      "justificativa": "Excesso de concentrado, troca brusca de ração ou pouca fibra efetiva é a principal causa."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "ruminacao_reduzida",
+      "cf": 0.45,
+      "justificativa": "A ruminação cai cedo quando o rúmen se desequilibra."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "atonia_ruminal",
+      "cf": 0.4,
+      "justificativa": "O rúmen para de se movimentar quando o pH cai muito."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "gordura_leite_baixa",
+      "cf": 0.4,
+      "justificativa": "Gordura do leite abaixo de 3% é um marcador indireto de acidose."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "varios_animais_afetados",
+      "cf": 0.25,
+      "justificativa": "Vários animais afetados apontam para erro de dieta no lote."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "claudicacao",
+      "cf": 0.1,
+      "justificativa": "A laminite, complicação da acidose, pode causar manqueira; sinal fraco."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "inapetencia",
+      "cf": 0.15,
+      "justificativa": "A redução do consumo de alimento é comum na acidose."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "queda_producao",
+      "cf": 0.1,
+      "justificativa": "A queda de produção acompanha o desequilíbrio do rúmen."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "parto_ultimas_8_semanas",
+      "cf": 0.15,
+      "justificativa": "O início da lactação é de maior risco, pela mudança para dietas com mais concentrado."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "febre",
+      "cf": -0.2,
+      "justificativa": "Febre não é característica de acidose e sugere outra causa."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "fezes_ressecadas",
+      "cf": -0.3,
+      "justificativa": "Fezes ressecadas não combinam com acidose; sugerem cetose ou pouca ingestão."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "mucosas_palidas_ictericas",
+      "cf": 0.6,
+      "justificativa": "Mucosas pálidas (anemia) ou amareladas (icterícia) vêm da destruição dos glóbulos vermelhos."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "urina_escura",
+      "cf": 0.7,
+      "justificativa": "Urina escura, cor de café ou avermelhada (hemoglobinúria) é um sinal marcante da TPB."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "febre",
+      "cf": 0.35,
+      "justificativa": "Febre alta é típica da fase aguda da TPB."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "carrapatos_presentes",
+      "cf": 0.3,
+      "justificativa": "O carrapato Rhipicephalus microplus transmite os agentes da TPB, então a presença dele é condição para a doença. Ref. 04."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "animal_sem_premunicao",
+      "cf": 0.25,
+      "justificativa": "Animais vindos de área livre de carrapato ou sem contato prévio têm maior risco de doença clínica. Ref. 03."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "varios_animais_afetados",
+      "cf": 0.2,
+      "justificativa": "Vários animais doentes ao mesmo tempo reforçam a suspeita de surto de hemoparasitose."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "apatia",
+      "cf": 0.1,
+      "justificativa": "A prostração acompanha o quadro geral grave."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "inapetencia",
+      "cf": 0.1,
+      "justificativa": "A perda de apetite é comum na fase aguda."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "queda_producao",
+      "cf": 0.1,
+      "justificativa": "A produção cai por causa da doença geral."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "temperatura_baixa",
+      "cf": -0.3,
+      "justificativa": "Temperatura baixa não combina com a fase aguda da TPB, que cursa com febre."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "claudicacao",
+      "cf": 0.7,
+      "justificativa": "Manqueira é o sinal principal das afecções podais. Ref. 06."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "lesao_casco_visivel",
+      "cf": 0.5,
+      "justificativa": "Ferida, erosão ou úlcera no casco, entre os dedos ou no talão confirma a causa podal."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "casco_calor_dor",
+      "cf": 0.4,
+      "justificativa": "Calor, inchaço ou dor no casco indicam inflamação local."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "piso_umido_lama",
+      "cf": 0.25,
+      "justificativa": "Piso úmido, lama, esterco acumulado e casqueamento atrasado favorecem as lesões de casco."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "apatia",
+      "cf": 0.1,
+      "justificativa": "A dor pode deixar a vaca abatida; sinal fraco."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "inapetencia",
+      "cf": 0.1,
+      "justificativa": "A vaca com dor vai menos ao cocho e come menos."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "queda_producao",
+      "cf": 0.1,
+      "justificativa": "A dor reduz a ingestão e, com isso, a produção de leite."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "decubito_periparto",
+      "cf": -0.15,
+      "justificativa": "Vaca caída no periparto sugere causa metabólica, não de casco."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "itu_alto",
+      "cf": 0.7,
+      "justificativa": "ITU acima de 72 é o principal critério ambiental de estresse por calor (Perissinotto, ESALQ/USP). Ref. 09."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "frequencia_respiratoria_alta",
+      "cf": 0.45,
+      "justificativa": "Respiração acima de 60 movimentos por minuto ou de boca aberta indica estresse térmico forte."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "sem_sombra_ventilacao",
+      "cf": 0.35,
+      "justificativa": "Sem sombra, ventilação ou aspersão nas horas quentes, a vaca não consegue perder calor."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "varios_animais_afetados",
+      "cf": 0.4,
+      "justificativa": "Vários animais afetados ao mesmo tempo apontam para causa ambiental."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "ruminacao_reduzida",
+      "cf": 0.2,
+      "justificativa": "A ruminação diminui com o calor."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "febre",
+      "cf": 0.2,
+      "justificativa": "Temperatura elevada em dia quente é compatível com estresse térmico."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "queda_producao",
+      "cf": 0.15,
+      "justificativa": "A queda de produção é consequência direta do calor."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "inapetencia",
+      "cf": 0.1,
+      "justificativa": "A vaca come menos no calor para gerar menos calor interno."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "apatia",
+      "cf": 0.1,
+      "justificativa": "O desconforto térmico pode deixar a vaca abatida."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "extremidades_frias",
+      "cf": -0.3,
+      "justificativa": "Extremidades frias não combinam com estresse por calor; sugerem falta de cálcio."
+    }
   ]
 }
