@@ -61,6 +61,7 @@ class PassoInferencia:
     def efeito(self) -> str:
         return "reforca" if self.contribuicao > 0 else "enfraquece"
 
+# comentario
 
 @dataclass(frozen=True)
 class EvidenciaSemEfeito:
