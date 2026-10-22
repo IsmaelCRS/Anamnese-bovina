@@ -238,16 +238,30 @@ function obterCategoria(pergunta) {
 // ---------------------------------------------------------------------------
 // Utilitários DOM
 // ---------------------------------------------------------------------------
-function el(tag, classes = '', texto) {
+function el(tag, classes = '', conteudo) {
     const elemento = document.createElement(tag);
     if (classes) elemento.className = classes;
-    if (texto !== undefined) elemento.textContent = texto;
+    if (conteudo !== undefined && conteudo !== null) {
+        if (Array.isArray(conteudo)) {
+            conteudo.forEach((item) => {
+                if (item instanceof Node) {
+                    elemento.appendChild(item);
+                } else if (item !== undefined && item !== null) {
+                    elemento.appendChild(document.createTextNode(String(item)));
+                }
+            });
+        } else if (conteudo instanceof Node) {
+            elemento.appendChild(conteudo);
+        } else {
+            elemento.textContent = String(conteudo);
+        }
+    }
     return elemento;
 }
 
 /** Cria um card colapsável (Accordion) com cabeçalho interativo e animação suave */
-function criarSecaoAccordion({ eyebrowText, titulo, subtitulo, expandidoPadrao = false, conteudoElemento }) {
-    const card = el('div', 'card-bio p-6 sm:p-7');
+function criarSecaoAccordion({ eyebrowText, titulo, subtitulo, expandidoPadrao = false, conteudoElemento, classeExtra = '' }) {
+    const card = el('div', `card-bio p-6 sm:p-7 ${classeExtra}`.trim());
 
     const header = el('button', 'w-full text-left bg-transparent border-0 p-0 flex items-center justify-between cursor-pointer accordion-header group');
     header.type = 'button';
@@ -533,7 +547,7 @@ function mostrarDiagnostico(resposta) {
     // Container geral do Laudo Completo
     const containerResultado = el('div', 'w-full flex flex-col gap-6 surgir');
 
-    // Cabeçalho da tela de resultado
+    // Cabeçalho da tela de resultado (Limpo, sem metadados brutos de sessão)
     const cabecalho = el('div', 'flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E7DDD3] pb-4');
     const titEsq = el('div', 'flex flex-col items-start');
     titEsq.append(
@@ -550,15 +564,15 @@ function mostrarDiagnostico(resposta) {
     acoesCabecalho.append(badgeNivelTopo);
     cabecalho.append(titEsq, acoesCabecalho);
 
-    // Card Principal: Hipótese Líder
+    // 1. Diagnóstico Principal (Card Líder)
     const cardPrincipal = el('div', 'card-bio p-7 sm:p-8');
-
     const topoCard = el('div', 'flex items-start justify-between gap-4');
     const esqCard = el('div', 'flex flex-col');
     esqCard.append(
         el('span', 'eyebrow block mb-1', 'HIPÓTESE PRINCIPAL DETECTADA'),
         el('h2', 'text-[24px] sm:text-[28px] font-bold text-[#2A211C] m-0', top.doenca),
-        el('span', 'text-xs font-semibold text-[#5F5148] mt-1', `Pilar: ${top.pilar || 'Clínico'} · Sistema: ${top.sistema || 'Geral'}`)
+        el('span', 'text-xs font-semibold text-[#5F5148] mt-1', `Pilar: ${top.pilar || 'Clínico'} · Sistema: ${top.sistema || 'Geral'}`),
+        el('span', 'text-xs font-bold mt-1 text-[#9A3F25]', `Urgência Clínica: ${top.urgencia >= 3 ? '🚨 ALTA (Emergência Médica)' : top.urgencia >= 2 ? '⚠️ MÉDIA (Atenção Prioritária)' : '🟢 BAIXA (Monitoramento)'}`)
     );
     const dirCard = el('div', 'flex flex-col items-end shrink-0');
     dirCard.append(
@@ -576,9 +590,9 @@ function mostrarDiagnostico(resposta) {
 
     cardPrincipal.append(topoCard, trackPrincipal);
 
-    // Alerta de Urgência em destaque
+    // Alerta de Urgência em destaque se necessário
     if (top.alerta || top.certeza >= 0.75 || top.urgencia >= 2.5) {
-        const caixaAlerta = el('div', 'bg-[#FFF1D6] border border-[#E8C877] text-[#5C3D00] rounded-xl p-4 my-4 flex items-start gap-3');
+        const caixaAlerta = el('div', 'bg-[#FFF1D6] border border-[#E8C877] text-[#5C3D00] rounded-xl p-4 my-2 flex items-start gap-3');
         const iconeAlerta = icone('alerta', 'w-5 h-5 text-[#5C3D00] shrink-0 mt-0.5', 'Alerta');
         const corpoAlerta = el('div', 'flex flex-col');
         corpoAlerta.append(
@@ -589,21 +603,89 @@ function mostrarDiagnostico(resposta) {
         cardPrincipal.append(caixaAlerta);
     }
 
-    // 1. Plano de Ação & Conduta Sugerida para o Manejo da Fazenda (Colapsável / Accordion)
+    // 2. Conduta e Recomendações Sanitárias (Manejo e Diretrizes)
     const corpoConduta = el('div', 'p-1');
     corpoConduta.append(
-        el('p', 'text-[14px] text-[#2A211C] m-0 leading-relaxed font-medium', top.conduta || top.recomendacao || 'Consultar avaliação presencial de médico-veterinário e monitorar evolução do animal.')
+        el('p', 'text-base font-semibold text-[#7E2F18] m-0 mb-3 leading-relaxed', top.conduta || top.recomendacao || 'Consultar avaliação presencial de médico-veterinário e monitorar evolução do animal.')
     );
+    const listaRecomendacoes = el('div', 'p-3.5 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]/80 flex flex-col gap-1.5 text-xs text-[#5F5148]');
+    listaRecomendacoes.append(
+        el('p', 'm-0', '• Isolar o animal em piquete-hospital/confinamento com piso antiderrapante, sombra e água limpa à vontade.'),
+        el('p', 'm-0', '• Monitorar temperatura retal, motilidade ruminal e consumo de alimento a cada 6 a 12 horas.'),
+        el('p', 'm-0', '• Não administrar antimicrobianos sem prévio diagnóstico confirmatório ou indicação de médico-veterinário.')
+    );
+    corpoConduta.append(listaRecomendacoes);
+
     const cardConduta = criarSecaoAccordion({
-        eyebrowText: 'MANEJO & RECOMENDAÇÃO',
-        titulo: '🩺 Conduta Recomendada para a Propriedade',
-        subtitulo: 'Procedimentos clínicos e operacionais sugeridos para o caso',
+        eyebrowText: 'MANEJO & RECOMENDAÇÃO SANITÁRIA',
+        titulo: '🩺 Conduta e Recomendações Sanitárias',
+        subtitulo: 'Procedimentos clínicos e operacionais sugeridos para a propriedade',
         expandidoPadrao: true,
         conteudoElemento: corpoConduta,
     });
-    cardPrincipal.append(cardConduta);
 
-    // 2. Trilha Explicativa de Evidências (Por quê? Marcadores & Contra-evidências) (Colapsável)
+    // 3. Diagnósticos Diferenciais (Comparativo Explicativo + Outras Hipóteses)
+    let cardDiferencial = null;
+    let cardOutrasAccordion = null;
+
+    if (hipoteses.length > 1) {
+        const segundo = hipoteses[1];
+        const pctSegundo = Math.round((segundo.certeza || 0) * 100);
+        const diferenca = pctTop - pctSegundo;
+
+        const corpoDiferencial = el('div', 'p-1');
+        corpoDiferencial.append(
+            el(
+                'p',
+                'text-sm text-[#2A211C] m-0 leading-relaxed',
+                `A hipótese de ${top.doenca} (${pctTop}%) apresentou vantagem de +${diferenca}% em relação a ${segundo.doenca} (${pctSegundo}%), pois os sintomas relatados demonstraram maior compatibilidade com as regras cardinais de ${top.doenca}.`
+            )
+        );
+
+        cardDiferencial = criarSecaoAccordion({
+            eyebrowText: 'ANÁLISE COMPARATIVA',
+            titulo: 'Diagnóstico Diferencial Explicativo',
+            subtitulo: `Comparativo direto entre a 1ª hipótese (${top.doenca}) e a 2ª (${segundo.doenca})`,
+            expandidoPadrao: true,
+            conteudoElemento: corpoDiferencial,
+        });
+
+        // Lista de Outras Hipóteses
+        const listaOutras = el('div', 'flex flex-col gap-3');
+        for (let i = 1; i < hipoteses.length; i++) {
+            const h = hipoteses[i];
+            const pct = Math.round((h.certeza || 0) * 100);
+            const b = obterBadgeClassificacao(h.certeza);
+
+            const bloco = el('div', 'p-3.5 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]/70');
+            const linhaInfo = el('div', 'flex items-center justify-between text-sm mb-2');
+            const titD = el('div', 'flex items-center gap-2');
+            titD.append(
+                el('span', 'font-semibold text-[#2A211C]', h.doenca),
+                el('span', `text-[10px] px-2 py-0.5 rounded-full font-bold ${b.classe}`, `${pct}%`)
+            );
+            linhaInfo.append(titD, el('span', 'text-xs text-[#5F5148]', h.pilar || ''));
+
+            const trackH = el('div', 'h-2 bg-[#EADFD3] rounded-full overflow-hidden');
+            const fillH = el('div', 'h-full bg-[#C98A73] rounded-full');
+            fillH.style.width = `${pct}%`;
+            trackH.append(fillH);
+
+            bloco.append(linhaInfo, trackH);
+            listaOutras.append(bloco);
+        }
+
+        cardOutrasAccordion = criarSecaoAccordion({
+            eyebrowText: 'DIAGNÓSTICOS DIFERENCIAIS',
+            titulo: 'Outras Hipóteses Avaliadas',
+            subtitulo: `${hipoteses.length - 1} outras enfermidades avaliadas pelo motor MYCIN durante a triagem`,
+            expandidoPadrao: false,
+            conteudoElemento: listaOutras,
+        });
+    }
+
+    // 4. Seções Auxiliares Retráteis (Fechadas por padrão)
+    // Justificativa Clínica (Sinais e Marcadores Observados)
     const listaEvidencias = el('div', 'flex flex-col gap-2');
     const passos = top.explicacao && top.explicacao.length > 0 ? top.explicacao : null;
 
@@ -644,73 +726,11 @@ function mostrarDiagnostico(resposta) {
         subtitulo: 'Sinais que confirmaram a suspeita e regras dedutivas validadas',
         expandidoPadrao: false,
         conteudoElemento: listaEvidencias,
+        classeExtra: 'laudo-ocultar-impressao',
     });
-    cardPrincipal.append(cardEvidencias);
 
-    // 3. Diagnóstico Diferencial Explicativo (Por que a 1ª superou a 2ª) (Colapsável)
-    if (hipoteses.length > 1) {
-        const segundo = hipoteses[1];
-        const pctSegundo = Math.round((segundo.certeza || 0) * 100);
-        const diferenca = pctTop - pctSegundo;
-
-        const corpoDiferencial = el('div', 'p-1');
-        corpoDiferencial.append(
-            el(
-                'p',
-                'text-sm text-[#2A211C] m-0 leading-relaxed',
-                `A hipótese de ${top.doenca} (${pctTop}%) apresentou vantagem de ${diferenca}% em relação a ${segundo.doenca} (${pctSegundo}%), pois os sintomas relatados demonstraram maior compatibilidade com as regras cardinais de ${top.doenca}.`
-            )
-        );
-
-        const cardDiferencial = criarSecaoAccordion({
-            eyebrowText: 'ANÁLISE COMPARATIVA',
-            titulo: 'Diagnóstico Diferencial Explicativo',
-            subtitulo: `Comparativo direto entre a 1ª hipótese (${top.doenca}) e a 2ª (${segundo.doenca})`,
-            expandidoPadrao: false,
-            conteudoElemento: corpoDiferencial,
-        });
-        cardPrincipal.append(cardDiferencial);
-    }
-
-    containerResultado.append(cabecalho, cardPrincipal);
-
-    // 4. Card "Outras Hipóteses Avaliadas" (da 2ª em diante) (Colapsável)
-    if (hipoteses.length > 1) {
-        const listaOutras = el('div', 'flex flex-col gap-3');
-        for (let i = 1; i < hipoteses.length; i++) {
-            const h = hipoteses[i];
-            const pct = Math.round((h.certeza || 0) * 100);
-            const b = obterBadgeClassificacao(h.certeza);
-
-            const bloco = el('div', 'p-3.5 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]/70');
-            const linhaInfo = el('div', 'flex items-center justify-between text-sm mb-2');
-            const titD = el('div', 'flex items-center gap-2');
-            titD.append(
-                el('span', 'font-semibold text-[#2A211C]', h.doenca),
-                el('span', `text-[10px] px-2 py-0.5 rounded-full font-bold ${b.classe}`, `${pct}%`)
-            );
-            linhaInfo.append(titD, el('span', 'text-xs text-[#5F5148]', h.pilar || ''));
-
-            const trackH = el('div', 'h-2 bg-[#EADFD3] rounded-full overflow-hidden');
-            const fillH = el('div', 'h-full bg-[#C98A73] rounded-full');
-            fillH.style.width = `${pct}%`;
-            trackH.append(fillH);
-
-            bloco.append(linhaInfo, trackH);
-            listaOutras.append(bloco);
-        }
-
-        const cardOutrasAccordion = criarSecaoAccordion({
-            eyebrowText: 'DIAGNÓSTICOS DIFERENCIAIS',
-            titulo: 'Outras Hipóteses Monitoradas',
-            subtitulo: `${hipoteses.length - 1} outras enfermidades avaliadas pelo motor MYCIN durante a triagem`,
-            expandidoPadrao: false,
-            conteudoElemento: listaOutras,
-        });
-        containerResultado.append(cardOutrasAccordion);
-    }
-
-    // 5. Histórico Sequencial Completo de Perguntas da Anamnese (Auditabilidade) (Colapsável)
+    // Histórico Sequencial Completo de Perguntas da Anamnese (Auditabilidade)
+    let cardHistoricoAccordion = null;
     if (estado.historico.length > 0) {
         const tabela = el('div', 'flex flex-col gap-2');
         estado.historico.forEach((item, index) => {
@@ -729,17 +749,17 @@ function mostrarDiagnostico(resposta) {
             tabela.append(linhaHist);
         });
 
-        const cardHistoricoAccordion = criarSecaoAccordion({
+        cardHistoricoAccordion = criarSecaoAccordion({
             eyebrowText: 'AUDITORIA DA ANAMNESE',
             titulo: 'Histórico Sequencial de Perguntas Respondidas',
             subtitulo: `Registro cronológico completo das ${estado.historico.length} respostas registradas`,
             expandidoPadrao: false,
             conteudoElemento: tabela,
+            classeExtra: 'laudo-ocultar-impressao laudo-modulo-historico',
         });
-        containerResultado.append(cardHistoricoAccordion);
     }
 
-    // 6. Trilha Dedutiva de Inferência — Árvore de Decisão (Colapsável)
+    // Trilha Dedutiva de Inferência — Árvore de Decisão
     const containerCorpoArvore = el('div', 'flex flex-col gap-6');
     let temRegras = false;
 
@@ -775,7 +795,7 @@ function mostrarDiagnostico(resposta) {
             const cardRamo = el('div', 'arvore-ramo');
             const fluxo = el('div', 'arvore-fluxo');
 
-            // 🟢 Nó 1: Raiz / Pergunta & Resposta do Usuário
+            // 🟢 Nó 1: Raiz / Marcador Avaliado
             const noRaiz = el('div', 'arvore-no arvore-no--raiz');
             noRaiz.append(
                 el('span', 'arvore-badge-meta', '🟢 Marcador Avaliado'),
@@ -786,7 +806,7 @@ function mostrarDiagnostico(resposta) {
             // ➔ Conector 1
             const conector1 = el('div', 'arvore-conector', '➔');
 
-            // 🔶 Nó 2: Ramo / Regra Ativada (Motor)
+            // 🔶 Nó 2: Ramo / Regra Ativada
             const noRegra = el('div', 'arvore-no arvore-no--regra');
             noRegra.append(
                 el('span', 'arvore-badge-meta', `Regra [${ruleId}]`),
@@ -797,7 +817,7 @@ function mostrarDiagnostico(resposta) {
             // ➔ Conector 2
             const conector2 = el('div', 'arvore-conector', '➔');
 
-            // 🔵 Nó 3: Folha / Impacto no Diagnóstico e Delta
+            // 🔵 Nó 3: Folha / Impacto
             const folhaClasse = ehReforco ? 'arvore-no--folha-reforco' : 'arvore-no--folha-penalidade';
             const noFolha = el('div', `arvore-no ${folhaClasse}`);
             noFolha.append(
@@ -815,16 +835,25 @@ function mostrarDiagnostico(resposta) {
         containerCorpoArvore.append(blocoDoenca);
     });
 
+    let cardSintraAccordion = null;
     if (temRegras) {
-        const cardSintraAccordion = criarSecaoAccordion({
+        cardSintraAccordion = criarSecaoAccordion({
             eyebrowText: 'TRILHA DEDUTIVA DE INFERÊNCIA',
             titulo: 'Encadeamento de Regras',
             subtitulo: 'Genealogia visual do raciocínio determinístico: sintomas avaliados interligados às regras disparadas e impacto acumulado',
             expandidoPadrao: false,
             conteudoElemento: containerCorpoArvore,
+            classeExtra: 'laudo-ocultar-impressao laudo-modulo-arvore',
         });
-        containerResultado.append(cardSintraAccordion);
     }
+
+    // Inserção dos elementos no painel principal
+    containerResultado.append(cabecalho, cardPrincipal, cardConduta);
+    if (cardDiferencial) containerResultado.append(cardDiferencial);
+    if (cardOutrasAccordion) containerResultado.append(cardOutrasAccordion);
+    containerResultado.append(cardEvidencias);
+    if (cardHistoricoAccordion) containerResultado.append(cardHistoricoAccordion);
+    if (cardSintraAccordion) containerResultado.append(cardSintraAccordion);
 
     painelPrincipal.append(containerResultado);
 
