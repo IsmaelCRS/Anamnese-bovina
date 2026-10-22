@@ -1,0 +1,16 @@
+services:
+  sistema_anamnese:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sistema_anamnese_local
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src/kb:/app/src/kb
+      - ./src/db:/app/src/db
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - PORT=8080
+    restart: unless-stopped
