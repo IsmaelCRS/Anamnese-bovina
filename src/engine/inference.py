@@ -275,9 +275,12 @@ class InferenceEngine:
         if melhor is not None:
             return melhor
 
-        # Garante que min_respostas seja sempre respeitado: se ainda não atingiu o
-        # mínimo estipulado em criterio_parada e restam parâmetros, continua perguntando.
-        if len(respostas) < self._kb.criterio_parada.min_respostas and primeira_pendente is not None:
+        # Se as perguntas de utilidade positiva acabaram, mas ainda não atingiu
+        # o critério de parada (confiabilidade mínima/min_respostas do JSON)
+        # e ainda existem parâmetros pendentes, continua perguntando para coletar evidências.
+        ranking = self.ranking(respostas)
+        parada = self.deve_parar(ranking, len(respostas))
+        if not parada.parar and primeira_pendente is not None:
             return primeira_pendente
 
         return None
