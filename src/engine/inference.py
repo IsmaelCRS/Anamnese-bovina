@@ -251,19 +251,36 @@ class InferenceEngine:
 
         Entre os parâmetros ainda sem resposta, escolhe o de maior utilidade
         (estritamente > 0). Em empate vence o primeiro declarado na KB, o que
-        garante determinismo. Retorna ``None`` quando não há mais perguntas úteis.
+        garante determinismo. Se não houver perguntas com utilidade > 0, mas
+        o número de respostas ainda for inferior a ``min_respostas``, continua
+        perguntando os parâmetros pendentes na ordem da KB. Retorna ``None``
+        apenas quando não há parâmetros pendentes ou quando min_respostas já
+        foi atendido e não há utilidade adicional.
         """
         cfs = self._cfs_atuais(respostas)
         melhor: Optional[SelecaoPergunta] = None
         maximo = 0.0
+        primeira_pendente: Optional[SelecaoPergunta] = None
+
         for p in self._kb.parametros:
             if p.id in respostas:
                 continue
             selecao = self.utilidade(p.id, respostas, cfs)
+            if primeira_pendente is None:
+                primeira_pendente = selecao
             if selecao.utilidade > maximo:
                 maximo = selecao.utilidade
                 melhor = selecao
-        return melhor
+
+        if melhor is not None:
+            return melhor
+
+        # Garante que min_respostas seja sempre respeitado: se ainda não atingiu o
+        # mínimo estipulado em criterio_parada e restam parâmetros, continua perguntando.
+        if len(respostas) < self._kb.criterio_parada.min_respostas and primeira_pendente is not None:
+            return primeira_pendente
+
+        return None
 
     def perguntas_pendentes(self, respostas: Respostas) -> int:
         """Quantidade de parâmetros da KB ainda não respondidos."""

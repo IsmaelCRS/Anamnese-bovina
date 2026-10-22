@@ -60,7 +60,7 @@
     }
   ],
   "criterio_parada": {
-    "min_respostas": 3,
+    "min_respostas": 8,
     "cf_lider_forte": 0.80,
     "cf_lider_moderado": 0.60,
     "vantagem_minima": 0.30
