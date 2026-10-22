@@ -1,0 +1,9 @@
+# Sistema Especialista LactaExpert - Pecuária Leiteira (UFJF 2026)
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.6.0
+pytest>=8.1.0
+httpx>=0.27.0
+
+# Motor de regras CLIPS (Opcional / descomentar caso a equipe opte pela biblioteca C nativa clipspy)
+# clipspy>=1.0.0

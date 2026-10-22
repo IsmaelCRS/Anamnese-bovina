@@ -1,0 +1,252 @@
+/* ------------------------------------------------------------------ */
+/* Fontes Locais (100% Offline)                                       */
+/* ------------------------------------------------------------------ */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/inter.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 500 700;
+    font-display: swap;
+    src: url('../fonts/lora.woff2') format('woff2');
+}
+
+/* ------------------------------------------------------------------ */
+/* Variáveis de Tokens Globais                                        */
+/* ------------------------------------------------------------------ */
+:root {
+    --fundo: #F7F2EC;
+    --texto: #2A211C;
+    --muted: #5F5148;
+    --accent: #9A3F25;
+    --accent-dark: #7E2F18;
+    --borda: #E7DDD3;
+    --borda-btn2: #D9C9BA;
+    --tint: #F3E3DA;
+    --track: #EADFD3;
+    --barra-secundaria: #C98A73;
+    --alerta-bg: #FFF1D6;
+    --alerta-borda: #E8C877;
+    --alerta-texto: #5C3D00;
+}
+
+body {
+    background-color: var(--fundo);
+    color: var(--texto);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------------ */
+/* Componentes do Design System                                       */
+/* ------------------------------------------------------------------ */
+
+.eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+}
+
+.card-bio {
+    background-color: #FFFFFF;
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 2px 8px rgba(42, 33, 28, 0.04);
+}
+
+.btn-primario {
+    height: 48px;
+    border-radius: 12px;
+    padding-left: 26px;
+    padding-right: 26px;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: var(--accent);
+    color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(154, 63, 37, 0.2);
+}
+
+.btn-primario:hover:not(:disabled) {
+    background-color: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(154, 63, 37, 0.3);
+}
+
+.btn-primario:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-primario:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-secundario {
+    height: 48px;
+    border-radius: 12px;
+    padding-left: 26px;
+    padding-right: 26px;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--borda-btn2);
+    color: var(--accent-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-secundario:hover:not(:disabled) {
+    border-color: var(--accent);
+    background-color: #FDFBFA;
+    transform: translateY(-1px);
+}
+
+.btn-secundario:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-secundario:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Botões do Grid de Opções (Tela de Pergunta) */
+.btn-opcao-grid {
+    min-height: 84px;
+    height: auto;
+    border-radius: 14px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--borda-btn2);
+    font-weight: 600;
+    color: var(--texto);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    overflow: hidden;
+    word-break: normal;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-opcao-grid .rotulo-opcao {
+    font-size: 14px;
+    line-height: 1.25;
+    font-weight: 600;
+    color: var(--texto);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    hyphens: auto;
+}
+
+.btn-opcao-grid:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(154, 63, 37, 0.12);
+}
+
+.btn-opcao-grid:hover:not(:disabled) .rotulo-opcao {
+    color: var(--accent-dark);
+}
+
+.btn-opcao-grid.escolhido {
+    background-color: var(--tint);
+    border-color: var(--accent);
+    color: var(--accent-dark);
+    box-shadow: 0 4px 12px rgba(154, 63, 37, 0.15);
+}
+
+.btn-opcao-grid.escolhido .rotulo-opcao {
+    color: var(--accent-dark);
+}
+
+.btn-opcao-grid:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Animações Suaves                                                   */
+/* ------------------------------------------------------------------ */
+@keyframes surgir {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.surgir {
+    animation: surgir 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2.5px solid rgba(154, 63, 37, 0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Estilos de Impressão                                               */
+/* ------------------------------------------------------------------ */
+@media print {
+    header, footer, #btn-imprimir, #btn-reiniciar-resultado, #btn-reiniciar-atendimento, nav {
+        display: none !important;
+    }
+
+    body {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+
+    .card-bio {
+        box-shadow: none !important;
+        border: 1px solid #CCCCCC !important;
+        page-break-inside: avoid;
+    }
+}

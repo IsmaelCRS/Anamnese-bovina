@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "nome": "BioExpert / LactaExpert — Base de Conhecimento MVP",
+    "versao": "1.0.0",
+    "descricao": "Catálogo declarativo de parâmetros (perguntas), doenças (prior + urgência) e critérios (doença x parâmetro x CF) para anamnese de bovinos leiteiros em lactação. Consumido pelo Motor de Inferência (src/engine) sem nenhuma lógica procedural embutida.",
+    "aviso": "Priors, urgências e CFs são ILUSTRATIVOS (derivados de codigo_exemplo_base.md e base_regras.clp). Devem ser validados por médico-veterinário antes de qualquer uso real. O sistema NÃO prescreve medicamentos nem dosagens.",
+    "fontes": [
+      "BibliografiaHack/codigo_exemplo_base.md (estruturas parametro/doenca/criterio/resposta, priors e CFs base)",
+      "base_regras.clp — LactaExpert v1.0 (sinais clínicos e pesos de reforço por enfermidade)",
+      "BibliografiaHack/referencias doenças/01_LactaExpert_Especificacao_Clinica.md (pilares clínicos e estratégia MVP)",
+      "BibliografiaHack/referencias doenças/03_Embrapa_Circular_Tecnica_31_Manejo_Sanitario.md (teste da caneca de fundo preto, CMT/CCS)",
+      "BibliografiaHack/referencias doenças/06_Saude_Animal_Riscos_e_Consequencias.md (distúrbios metabólicos)",
+      "RADOSTITS, O. M. et al. Veterinary Medicine. 10. ed. Saunders, 2007."
+    ]
+  },
+
+  "escala_respostas": [
+    { "codigo": "s", "rotulo": "Sim",                "cf": 1.0 },
+    { "codigo": "p", "rotulo": "Provavelmente sim",  "cf": 0.6 },
+    { "codigo": "?", "rotulo": "Não sei",            "cf": 0.0 },
+    { "codigo": "n", "rotulo": "Não",                "cf": -1.0 }
+  ],
+
+  "classificacao": [
+    { "cf_minimo": 0.80, "rotulo": "Forte indício", "nivel": "alto",  "recomendacao": "Acionar médico-veterinário imediatamente." },
+    { "cf_minimo": 0.40, "rotulo": "Provável",      "nivel": "medio", "recomendacao": "Agendar avaliação veterinária e monitorar a evolução." },
+    { "cf_minimo": -1.0, "rotulo": "Inconclusivo",  "nivel": "baixo", "recomendacao": "Coletar mais evidências clínicas e laboratoriais." }
+  ],
+
+  "criterio_parada": {
+    "min_respostas": 3,
+    "cf_lider_forte": 0.80,
+    "cf_lider_moderado": 0.60,
+    "vantagem_minima": 0.30
+  },
+
+  "doencas": [
+    {
+      "id": "mastite_clinica",
+      "nome": "Mastite Clínica",
+      "pilar": "Afecções da Glândula Mamária",
+      "sistema": "Úbere / Leite",
+      "prior": 0.30,
+      "urgencia": 2.0,
+      "descricao": "Inflamação da glândula mamária com alterações visíveis no leite (grumos, pus, sangue, aspecto aquoso) e/ou no úbere (edema, calor, dor).",
+      "conduta": "Isolar a ordenha do animal, realizar teste da caneca de fundo preto em todos os quartos e solicitar avaliação veterinária para coleta de amostra e cultura microbiológica."
+    },
+    {
+      "id": "cetose",
+      "nome": "Cetose (Acetonemia)",
+      "pilar": "Distúrbios Metabólicos do Periparto",
+      "sistema": "Metabólico",
+      "prior": 0.20,
+      "urgencia": 2.0,
+      "descricao": "Distúrbio do balanço energético negativo no início da lactação, com acúmulo de corpos cetônicos (BHB, acetona) e queda de apetite e produção.",
+      "conduta": "Confirmar com teste de corpos cetônicos (sangue, urina ou leite), revisar o manejo nutricional do período de transição e solicitar avaliação veterinária."
+    },
+    {
+      "id": "hipocalcemia",
+      "nome": "Hipocalcemia (Febre do Leite)",
+      "pilar": "Distúrbios Metabólicos do Periparto",
+      "sistema": "Periparto / Postura",
+      "prior": 0.10,
+      "urgencia": 3.0,
+      "descricao": "Queda aguda do cálcio sanguíneo logo após o parto, levando a fraqueza muscular, decúbito, extremidades frias e atonia ruminal. Emergência metabólica.",
+      "conduta": "EMERGÊNCIA: acionar o médico-veterinário imediatamente. Manter o animal em decúbito esternal (não deixar deitado de lado) em local seguro até o atendimento."
+    }
+  ],
+
+  "parametros": [
+    {
+      "id": "leite_alterado",
+      "texto": "O leite apresenta grumos, pus, sangue ou aspecto aquoso?",
+      "ajuda": "Observe os primeiros jatos de cada teto antes da ordenha.",
+      "categoria": "Úbere / Leite"
+    },
+    {
+      "id": "caneca_positiva",
+      "texto": "O teste da caneca de fundo preto (ou telada) foi positivo, com grumos retidos?",
+      "ajuda": "Teste de triagem recomendado pela Embrapa (Circular Técnica 31) a cada ordenha.",
+      "categoria": "Úbere / Leite"
+    },
+    {
+      "id": "ubere_inchado",
+      "texto": "O úbere (ou algum quarto) está inchado, quente ou dolorido ao toque?",
+      "ajuda": "Compare os quatro quartos mamários entre si.",
+      "categoria": "Úbere / Leite"
+    },
+    {
+      "id": "queda_producao",
+      "texto": "Houve queda na produção de leite nos últimos dias?",
+      "ajuda": "Considere a produção habitual do animal.",
+      "categoria": "Produção"
+    },
+    {
+      "id": "febre",
+      "texto": "A temperatura retal está acima de 39,5 °C?",
+      "ajuda": "Faixa normal de bovinos adultos: 38,0 °C a 39,3 °C.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "halito_cetonico",
+      "texto": "O animal tem hálito, leite ou urina com odor de acetona (cheiro adocicado/frutado)?",
+      "ajuda": "Nem todas as pessoas conseguem perceber o odor de acetona.",
+      "categoria": "Metabólico"
+    },
+    {
+      "id": "reduz_apetite",
+      "texto": "Houve redução do apetite, especialmente recusa do concentrado?",
+      "ajuda": "Observe a sobra de alimento no cocho.",
+      "categoria": "Comportamento / Alimentação"
+    },
+    {
+      "id": "inicio_lactacao",
+      "texto": "O animal está entre a 1ª e a 8ª semana de lactação (até 60 dias pós-parto)?",
+      "ajuda": "Período de maior balanço energético negativo.",
+      "categoria": "Histórico reprodutivo"
+    },
+    {
+      "id": "perda_condicao",
+      "texto": "Houve perda rápida de peso ou de escore de condição corporal?",
+      "ajuda": "Ex.: escore corporal caindo para abaixo de 2,5 (escala 1–5).",
+      "categoria": "Metabólico"
+    },
+    {
+      "id": "corpos_cetonicos",
+      "texto": "Um teste de corpos cetônicos (BHB no sangue > 1,2 mmol/L, fita de urina ou leite) deu positivo?",
+      "ajuda": "Responda 'Não sei' se o teste não foi realizado.",
+      "categoria": "Exame complementar"
+    },
+    {
+      "id": "sinais_nervosos",
+      "texto": "O animal apresenta sinais nervosos (andar cambaleante, lamber objetos compulsivamente, agressividade)?",
+      "ajuda": "Característicos da forma nervosa da cetose.",
+      "categoria": "Neurológico"
+    },
+    {
+      "id": "parto_72h",
+      "texto": "Ocorreu parto nas últimas 72 horas?",
+      "ajuda": "A maioria dos casos de hipocalcemia clínica ocorre nas primeiras 72 h pós-parto.",
+      "categoria": "Histórico reprodutivo"
+    },
+    {
+      "id": "decubito",
+      "texto": "O animal está deitado e não consegue se levantar?",
+      "ajuda": "Vaca caída / decúbito esternal ou lateral.",
+      "categoria": "Postura / Locomoção"
+    },
+    {
+      "id": "cabeca_flanco",
+      "texto": "O animal mantém a cabeça voltada para o flanco (postura de auto-auscultação)?",
+      "ajuda": "Postura característica da paresia puerperal.",
+      "categoria": "Postura / Locomoção"
+    },
+    {
+      "id": "extremidades_frias",
+      "texto": "As orelhas e extremidades estão frias (temperatura corporal baixa)?",
+      "ajuda": "Hipotermia periférica, geralmente com temperatura retal abaixo de 38 °C.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "tremores_fraqueza",
+      "texto": "Há tremores musculares, fraqueza ou cambaleio ao andar?",
+      "ajuda": "Fase inicial (em estação) da hipocalcemia.",
+      "categoria": "Postura / Locomoção"
+    },
+    {
+      "id": "atonia_ruminal",
+      "texto": "Os movimentos do rúmen estão ausentes ou muito reduzidos (sem ruminação)?",
+      "ajuda": "Palpe/ausculte a fossa paralombar esquerda por 2 minutos.",
+      "categoria": "Digestivo"
+    },
+    {
+      "id": "multipara",
+      "texto": "A vaca já teve três ou mais partos?",
+      "ajuda": "Vacas mais velhas mobilizam cálcio com menos eficiência.",
+      "categoria": "Histórico reprodutivo"
+    }
+  ],
+
+  "criterios": [
+    { "doenca": "mastite_clinica", "parametro": "leite_alterado",     "cf":  0.70, "justificativa": "Leite com grumos, pus ou aquoso é o sinal cardinal da mastite clínica." },
+    { "doenca": "mastite_clinica", "parametro": "ubere_inchado",      "cf":  0.70, "justificativa": "Edema, calor e dor no úbere indicam processo inflamatório mamário." },
+    { "doenca": "mastite_clinica", "parametro": "caneca_positiva",    "cf":  0.65, "justificativa": "Grumos retidos na caneca de fundo preto confirmam alteração clínica do leite." },
+    { "doenca": "mastite_clinica", "parametro": "queda_producao",     "cf":  0.30, "justificativa": "Dano ao tecido mamário reduz a produção do quarto afetado." },
+    { "doenca": "mastite_clinica", "parametro": "febre",              "cf":  0.20, "justificativa": "Febre indica resposta sistêmica (mastite clínica aguda)." },
+    { "doenca": "mastite_clinica", "parametro": "reduz_apetite",      "cf":  0.10, "justificativa": "Casos agudos podem cursar com redução de ingestão." },
+
+    { "doenca": "cetose", "parametro": "halito_cetonico",   "cf":  0.80, "justificativa": "Odor de acetona no hálito/leite/urina é sinal patognomônico de cetose." },
+    { "doenca": "cetose", "parametro": "corpos_cetonicos",  "cf":  0.75, "justificativa": "BHB > 1,2 mmol/L ou corpos cetônicos positivos confirmam laboratorialmente." },
+    { "doenca": "cetose", "parametro": "reduz_apetite",     "cf":  0.40, "justificativa": "Recusa do concentrado é típica do balanço energético negativo." },
+    { "doenca": "cetose", "parametro": "queda_producao",    "cf":  0.30, "justificativa": "Queda abrupta na produção de leite acompanha a cetose." },
+    { "doenca": "cetose", "parametro": "inicio_lactacao",   "cf":  0.30, "justificativa": "Primeiros 60 dias de lactação concentram o risco de cetose." },
+    { "doenca": "cetose", "parametro": "perda_condicao",    "cf":  0.30, "justificativa": "Perda de escore corporal indica mobilização excessiva de reservas." },
+    { "doenca": "cetose", "parametro": "sinais_nervosos",   "cf":  0.25, "justificativa": "Sinais nervosos podem indicar a forma nervosa da cetose." },
+    { "doenca": "cetose", "parametro": "parto_72h",         "cf":  0.10, "justificativa": "Pós-parto imediato já inicia o período de risco metabólico." },
+    { "doenca": "cetose", "parametro": "febre",             "cf": -0.20, "justificativa": "Cetose primária cursa sem febre; febre sugere outra causa." },
+
+    { "doenca": "hipocalcemia", "parametro": "decubito",           "cf":  0.80, "justificativa": "Vaca caída no periparto é altamente sugestiva de hipocalcemia." },
+    { "doenca": "hipocalcemia", "parametro": "cabeca_flanco",      "cf":  0.60, "justificativa": "Cabeça voltada para o flanco é postura característica da paresia puerperal." },
+    { "doenca": "hipocalcemia", "parametro": "parto_72h",          "cf":  0.50, "justificativa": "A maioria dos casos ocorre nas primeiras 72 h pós-parto." },
+    { "doenca": "hipocalcemia", "parametro": "extremidades_frias", "cf":  0.40, "justificativa": "Hipotermia periférica é sinal clássico da hipocalcemia." },
+    { "doenca": "hipocalcemia", "parametro": "tremores_fraqueza",  "cf":  0.40, "justificativa": "Tremores e fraqueza marcam o estágio inicial (em estação)." },
+    { "doenca": "hipocalcemia", "parametro": "atonia_ruminal",     "cf":  0.30, "justificativa": "O cálcio é necessário para a contração do rúmen; sua falta causa atonia." },
+    { "doenca": "hipocalcemia", "parametro": "multipara",          "cf":  0.20, "justificativa": "Vacas com 3+ partos têm maior predisposição." },
+    { "doenca": "hipocalcemia", "parametro": "queda_producao",     "cf":  0.10, "justificativa": "Queda súbita de produção acompanha o quadro agudo." },
+    { "doenca": "hipocalcemia", "parametro": "inicio_lactacao",    "cf":  0.10, "justificativa": "Início de lactação aumenta a demanda de cálcio." },
+    { "doenca": "hipocalcemia", "parametro": "febre",              "cf": -0.40, "justificativa": "Febre é incompatível com hipocalcemia, que cursa com hipotermia." }
+  ]
+}

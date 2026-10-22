@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioExpert — Sistema Especialista em Bovinos Leiteiros</title>
+    <meta name="description"
+        content="BioExpert: sistema especialista para anamnese e triagem clínica em bovinos leiteiros com raciocínio explicável (MYCIN).">
+
+    <!-- Tailwind CSS Local (100% Offline) -->
+    <script src="js/tailwindcss.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fundo: '#F7F2EC',
+                        texto: '#2A211C',
+                        muted: '#5F5148',
+                        accent: {
+                            DEFAULT: '#9A3F25',
+                            dark: '#7E2F18',
+                            hover: '#7E2F18',
+                        },
+                        borda: {
+                            DEFAULT: '#E7DDD3',
+                            botao: '#D9C9BA',
+                        },
+                        tint: '#F3E3DA',
+                        track: '#EADFD3',
+                        barra2: '#C98A73',
+                        alerta: {
+                            bg: '#FFF1D6',
+                            borda: '#E8C877',
+                            texto: '#5C3D00',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Lora', 'Georgia', 'serif'],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <!-- CSS com fontes locais embutidas e tokens -->
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+
+<body class="bg-[#F7F2EC] text-[#2A211C] min-h-screen flex flex-col font-sans">
+
+    <!-- Header fixo e padronizado em todas as telas -->
+    <header class="h-[68px] bg-white border-b border-[#E7DDD3] w-full shrink-0 z-30">
+        <div class="max-w-[1180px] h-full mx-auto px-6 sm:px-10 flex items-center justify-between">
+            <!-- Esquerda: Logo + Nome -->
+            <a href="#" id="link-logo" class="flex items-center gap-3 group text-decoration-none">
+                <img id="logo" src="img/logo.png" alt="Logo do BioExpert" class="h-10 w-10 object-contain"
+                    onerror="this.style.display='none'">
+                <span class="font-serif font-bold text-[22px] tracking-tight text-[#7E2F18]">BioExpert</span>
+            </a>
+
+            <!-- Direita: Navegação -->
+            <nav class="flex items-center gap-6 text-[14px] font-medium text-[#5F5148]" aria-label="Navegação principal">
+                <button id="nav-nova-anamnese" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0">
+                    Nova anamnese
+                </button>
+                <button id="nav-historico" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0">
+                    Histórico
+                </button>
+                <button id="nav-base-regras" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0">
+                    Base de regras
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow w-full">
+
+        <!-- 1. Tela Inicial -->
+        <section id="tela-inicio" class="max-w-[1180px] mx-auto px-6 sm:px-10 py-12 md:py-16">
+            <div class="grid grid-cols-1 min-[900px]:grid-cols-[1.15fr_1fr] gap-14 items-center">
+                
+                <!-- Coluna Esquerda: Apresentação -->
+                <div class="flex flex-col items-start">
+                    <span class="eyebrow mb-2">Sistema especialista · Bovinos leiteiros em lactação</span>
+                    <h1 class="font-serif text-[40px] sm:text-[52px] leading-[1.1] font-bold text-[#2A211C] my-4">
+                        Anamnese e triagem clínica com raciocínio explicável
+                    </h1>
+                    <p class="text-[18px] text-[#5F5148] max-w-[520px] leading-relaxed mb-8">
+                        Responda a perguntas guiadas sobre o animal e receba hipóteses ranqueadas por grau de certeza,
+                        a urgência do caso e o caminho exato das regras que levaram à conclusão.
+                    </p>
+                    
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button id="btn-iniciar" type="button" class="btn-primario group">
+                            <!-- Ícone Estetoscópio embutido via JS/CSS -->
+                            <span id="icone-btn-iniciar"></span>
+                            <span>Iniciar anamnese</span>
+                        </button>
+                        <button id="btn-ver-historico" type="button" class="btn-secundario">
+                            Ver histórico
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Card Como Funciona -->
+                <div class="card-bio">
+                    <span class="eyebrow block mb-5">COMO FUNCIONA</span>
+                    
+                    <ol class="flex flex-col gap-5 list-none p-0 m-0">
+                        <li class="flex items-start gap-4">
+                            <span class="flex items-center justify-center h-9 w-9 rounded-full bg-[#F3E3DA] text-[#9A3F25] font-bold text-sm shrink-0">
+                                1
+                            </span>
+                            <div class="flex flex-col">
+                                <h2 class="text-base font-semibold text-[#2A211C] m-0">Responda ao diálogo</h2>
+                                <p class="text-sm text-[#5F5148] m-0 mt-1 leading-normal">
+                                    Perguntas de múltipla escolha, com opção “Não sei” e grau de confiança.
+                                </p>
+                            </div>
+                        </li>
+
+                        <li class="flex items-start gap-4">
+                            <span class="flex items-center justify-center h-9 w-9 rounded-full bg-[#F3E3DA] text-[#9A3F25] font-bold text-sm shrink-0">
+                                2
+                            </span>
+                            <div class="flex flex-col">
+                                <h2 class="text-base font-semibold text-[#2A211C] m-0">O motor avalia as regras</h2>
+                                <p class="text-sm text-[#5F5148] m-0 mt-1 leading-normal">
+                                    Encadeamento para frente com Fatores de Certeza (MYCIN).
+                                </p>
+                            </div>
+                        </li>
+
+                        <li class="flex items-start gap-4">
+                            <span class="flex items-center justify-center h-9 w-9 rounded-full bg-[#F3E3DA] text-[#9A3F25] font-bold text-sm shrink-0">
+                                3
+                            </span>
+                            <div class="flex flex-col">
+                                <h2 class="text-base font-semibold text-[#2A211C] m-0">Receba o parecer auditável</h2>
+                                <p class="text-sm text-[#5F5148] m-0 mt-1 leading-normal">
+                                    Diagnóstico, urgência, conduta e relatório para impressão.
+                                </p>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <hr class="my-6 border-[#E7DDD3]">
+
+                    <!-- Chips Pill de Enfermidades Cobertas -->
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
+                            Mastite
+                        </span>
+                        <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
+                            Hipocalcemia
+                        </span>
+                        <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
+                            Cetose
+                        </span>
+                        <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
+                            Acidose ruminal
+                        </span>
+                        <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
+                            Tristeza parasitária
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. Tela de Anamnese (Pergunta Atual / Parecer de Triagem + Histórico Lateral) -->
+        <section id="tela-anamnese" class="hidden max-w-[1180px] mx-auto px-6 sm:px-10 py-10 md:py-12">
+            <div class="grid grid-cols-1 min-[900px]:grid-cols-[1.6fr_1fr] gap-8 items-start">
+                
+                <!-- Coluna Esquerda: Pergunta Ativa ou Parecer de Triagem -->
+                <div id="painel-principal" class="w-full flex flex-col gap-6" aria-live="polite"></div>
+
+                <!-- Coluna Direita: Histórico de Respostas + Botões de Ação -->
+                <aside id="painel-lateral" class="w-full flex flex-col gap-4 sticky top-6">
+                    <div class="card-bio p-6">
+                        <span class="eyebrow block mb-4">HISTÓRICO DE RESPOSTAS</span>
+
+                        <!-- Estado Vazio -->
+                        <div id="historico-vazio" class="flex flex-col items-center justify-center py-8 text-center">
+                            <span id="icone-prancheta-vazia" class="text-[#B9A798] mb-3"></span>
+                            <p class="text-sm font-semibold text-[#2A211C] m-0 mb-1">Nenhuma resposta ainda</p>
+                            <p class="text-[13px] text-[#5F5148] m-0 leading-normal max-w-[220px]">
+                                As respostas aparecerão aqui conforme a anamnese avança.
+                            </p>
+                        </div>
+
+                        <!-- Lista com Itens -->
+                        <ol id="lista-historico" class="flex flex-col gap-2 list-none p-0 m-0"></ol>
+                    </div>
+
+                    <!-- Botões de Ação Injetados Dinamicamente pelo app.js (Reiniciar / Imprimir) -->
+                    <div id="acoes-lateral" class="flex flex-col gap-2"></div>
+                </aside>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Base de Regras & Explicação Técnica -->
+    <dialog id="modal-base-regras" class="rounded-[16px] border border-[#E7DDD3] p-8 max-w-xl w-[90%] bg-white shadow-xl backdrop:bg-black/40">
+        <div class="flex items-center justify-between mb-4 border-b border-[#E7DDD3] pb-3">
+            <span class="eyebrow">BASE DE CONHECIMENTO CLÍNICO</span>
+            <button id="btn-fechar-modal" type="button" class="text-[#5F5148] hover:text-[#7E2F18] border-0 bg-transparent text-xl cursor-pointer p-1" aria-label="Fechar modal">✕</button>
+        </div>
+        <div class="text-sm text-[#5F5148] space-y-3">
+            <p>O <strong>BioExpert</strong> é um sistema especialista fundamentado na metodologia clássica do <strong>MYCIN</strong> com extensão por Fatores de Certeza (CF no intervalo [-1, 1]).</p>
+            <p><strong>Heurística de Utilidade:</strong> A escolha da próxima pergunta é otimizada matematicamente calculando o ganho de informação potencial em relação à urgência clínica e à distância para desempate das hipóteses diagnósticas.</p>
+            <p><strong>Enfermidades no MVP:</strong> Mastite Clínica (glândula mamária), Cetose (metabólico periparto) e Hipocalcemia (paralisia puerperal pós-parto).</p>
+        </div>
+        <div class="mt-6 flex justify-end">
+            <button id="btn-entendido-modal" type="button" class="btn-secundario text-sm h-10 px-5">Entendido</button>
+        </div>
+    </dialog>
+
+    <!-- Footer Fixo e Semântico -->
+    <footer class="text-center text-[13px] text-[#5F5148] py-5 px-6 border-t border-[#E7DDD3] bg-white shrink-0">
+        Ferramenta de apoio à decisão — não prescreve medicamentos nem substitui a avaliação de um médico-veterinário.
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
