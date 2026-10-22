@@ -101,6 +101,30 @@
                             Ver histórico
                         </button>
                     </div>
+
+                    <!-- Bloco Demo em 1 Clique para a Banca do Hackathon -->
+                    <div class="mt-8 p-4 rounded-xl border border-[#E7DDD3] bg-white/80 w-full">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-xs font-bold text-[#7E2F18] uppercase tracking-wider flex items-center gap-1.5">
+                                <span>⚡</span> Casos Clínicos de Teste (Demo em 1 Clique)
+                            </span>
+                            <span class="text-[11px] text-[#5F5148] font-medium hidden sm:inline">Simulação imediata sem perguntas</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2.5">
+                            <button id="btn-demo-cetose" type="button" class="btn-demo group" title="Dispara caso de Cetose com hálito acetônico, perda corporal e atonia ruminal">
+                                <span class="text-sm">🧪</span>
+                                <span>Caso 1: Cetose (Acetonemia)</span>
+                            </button>
+                            <button id="btn-demo-hipocalcemia" type="button" class="btn-demo group" title="Dispara emergência de Hipocalcemia com decúbito, hipotermia e tremores">
+                                <span class="text-sm">🚨</span>
+                                <span>Caso 2: Emergência Hipocalcemia</span>
+                            </button>
+                            <button id="btn-demo-mastite" type="button" class="btn-demo group" title="Dispara caso de Mastite Clínica com grumos, úbere quente e febre">
+                                <span class="text-sm">🍼</span>
+                                <span>Caso 3: Mastite Clínica</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Coluna Direita: Card Como Funciona -->
@@ -274,9 +298,77 @@
         </div>
     </dialog>
 
-    <!-- Footer Fixo e Semântico -->
-    <footer class="text-center text-[13px] text-[#5F5148] py-5 px-6 border-t border-[#E7DDD3] bg-white shrink-0">
-        Ferramenta de apoio à decisão — não prescreve medicamentos nem substitui a avaliação de um médico-veterinário.
+    <!-- Modal: Painel de Auditoria & Selo da Regra de Ouro (Compliance Hackathon) -->
+    <dialog id="modal-auditoria" class="rounded-2xl p-6 sm:p-8 max-w-[620px] w-full backdrop:bg-black/50 border border-[#E7DDD3] shadow-xl">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#E7DDD3]">
+            <div class="flex items-center gap-2.5">
+                <span class="text-2xl">🛡️</span>
+                <div>
+                    <span class="eyebrow block">COMPLIANCE & AUDITORIA DETERMINÍSTICA</span>
+                    <h3 class="font-serif text-xl font-bold text-[#2A211C] m-0">Selo da Regra de Ouro</h3>
+                </div>
+            </div>
+            <button id="btn-fechar-modal-auditoria" type="button" class="text-[#5F5148] hover:text-[#7E2F18] border-0 bg-transparent text-xl cursor-pointer p-1" aria-label="Fechar auditoria">✕</button>
+        </div>
+
+        <div class="text-sm text-[#5F5148] space-y-4 leading-relaxed">
+            <!-- 1. Declaração de Determinismo -->
+            <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-emerald-700 font-bold text-sm">⚙️ Declaração de Determinismo Clínico</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-200 text-emerald-900 uppercase">0% Alucinação</span>
+                </div>
+                <p id="auditoria-declaracao" class="m-0 text-xs text-emerald-900 font-medium">
+                    Motor de Inferência por Encadeamento para Frente (MYCIN) — 0% Chamada de LLM / AI Generativa no Diagnóstico Clínico.
+                </p>
+            </div>
+
+            <!-- 2. Hash SHA-256 da Base de Regras -->
+            <div class="p-4 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]">
+                <span class="text-xs font-bold text-[#7E2F18] uppercase tracking-wide block mb-1">🔐 Hash de Integridade da Base (SHA-256)</span>
+                <p class="text-xs text-[#5F5148] mb-1.5">Garante imutabilidade e auditabilidade ponto a ponto da base de conhecimento:</p>
+                <div class="bg-white p-2.5 rounded-lg border border-[#E7DDD3] font-mono text-[11px] text-[#2A211C] break-all select-all flex items-center justify-between gap-2">
+                    <span id="auditoria-hash">16e28ae43cd689583f7720ebda6460689d58b6c39f4c9bd9f241da91927dd154</span>
+                    <span class="text-[10px] font-sans font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded shrink-0">VÁLIDO</span>
+                </div>
+                <span id="auditoria-arquivo" class="text-[11px] text-[#5F5148] mt-1 block">Arquivo: regras_mvp.json (v3.1.0)</span>
+            </div>
+
+            <!-- 3. Ambiente e Métricas do Ciclo -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="p-3.5 bg-white rounded-xl border border-[#E7DDD3]">
+                    <span class="text-xs font-bold text-[#2A211C] block mb-1">💻 Ambiente de Execução</span>
+                    <p id="auditoria-ambiente" class="text-xs text-[#5F5148] m-0 leading-normal">
+                        100% Localhost / Offline — Banco SQLite Local & WM em RAM.
+                    </p>
+                </div>
+                <div class="p-3.5 bg-white rounded-xl border border-[#E7DDD3]">
+                    <span class="text-xs font-bold text-[#2A211C] block mb-1">📊 Métricas do Ciclo</span>
+                    <ul class="list-none p-0 m-0 text-xs text-[#5F5148] space-y-1">
+                        <li>• Regras na Memória: <strong id="auditoria-regras" class="text-[#2A211C]">84 critérios</strong></li>
+                        <li>• Enfermidades: <strong id="auditoria-doencas" class="text-[#2A211C]">8 cobertas</strong></li>
+                        <li>• Parâmetros Clínicos: <strong id="auditoria-parametros" class="text-[#2A211C]">40 catalogados</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button id="btn-entendido-auditoria" type="button" class="btn-primario text-sm h-10 px-5">Fechar Auditoria</button>
+        </div>
+    </dialog>
+
+    <!-- Footer Fixo e Semântico com Selo da Regra de Ouro -->
+    <footer class="py-4 px-6 border-t border-[#E7DDD3] bg-white shrink-0">
+        <div class="max-w-[1180px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <span class="text-[13px] text-[#5F5148]">
+                Ferramenta de apoio à decisão — não prescreve medicamentos nem substitui a avaliação de um médico-veterinário.
+            </span>
+            <button id="btn-abrir-auditoria" type="button" class="selo-regra-ouro group" title="Clique para abrir o painel de auditoria e conformidade técnica">
+                <span>🛡️</span>
+                <span>Selo de Garantia: Regra de Ouro (Auditável & Determinístico)</span>
+            </button>
+        </div>
     </footer>
 
     <script type="module" src="js/app.js"></script>

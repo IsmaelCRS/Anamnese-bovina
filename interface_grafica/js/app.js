@@ -5,7 +5,7 @@
  * a camada de API (api.js), mantendo o fluxo estrito:
  * início -> perguntas -> parecer de triagem com explicabilidade.
  */
-import { iniciarAnamnese, enviarResposta, USANDO_MOCK } from './api.js';
+import { iniciarAnamnese, enviarResposta, executarCasoDemo, obterAuditoriaRegraDeOuro, USANDO_MOCK } from './api.js';
 import { icone } from './icones.js';
 
 // ---------------------------------------------------------------------------
@@ -30,6 +30,22 @@ const btnAbrirComoFunciona = document.getElementById('btn-abrir-como-funciona');
 const gridCatalogoDoencas = document.getElementById('grid-catalogo-doencas');
 const iconeBtnIniciar = document.getElementById('icone-btn-iniciar');
 const iconePranchetaVazia = document.getElementById('icone-prancheta-vazia');
+
+// Elementos da Demo em 1 Clique e Auditoria Regra de Ouro
+const btnDemoCetose = document.getElementById('btn-demo-cetose');
+const btnDemoHipocalcemia = document.getElementById('btn-demo-hipocalcemia');
+const btnDemoMastite = document.getElementById('btn-demo-mastite');
+const btnAbrirAuditoria = document.getElementById('btn-abrir-auditoria');
+const modalAuditoria = document.getElementById('modal-auditoria');
+const btnFecharModalAuditoria = document.getElementById('btn-fechar-modal-auditoria');
+const btnEntendidoAuditoria = document.getElementById('btn-entendido-auditoria');
+const auditoriaDeclaracao = document.getElementById('auditoria-declaracao');
+const auditoriaHash = document.getElementById('auditoria-hash');
+const auditoriaArquivo = document.getElementById('auditoria-arquivo');
+const auditoriaAmbiente = document.getElementById('auditoria-ambiente');
+const auditoriaRegras = document.getElementById('auditoria-regras');
+const auditoriaDoencas = document.getElementById('auditoria-doencas');
+const auditoriaParametros = document.getElementById('auditoria-parametros');
 
 // Injeção de ícones SVG estáticos locais
 if (iconeBtnIniciar) {
@@ -119,7 +135,7 @@ function renderizarCatalogoDoencas() {
 
     CATALOGO_PILARES.forEach((grupo) => {
         const cardPilar = el('div', 'card-bio p-5 flex flex-col justify-between border-t-4 border-t-[#9A3F25]');
-        
+
         // 1. Box de resumo com o detalhamento das doenças na PARTE DE CIMA
         const listaDoencas = el('div', 'flex flex-col gap-3 mb-4');
         grupo.doencas.forEach((d) => {
@@ -673,7 +689,7 @@ function mostrarDiagnostico(resposta) {
 
         const blocoDoenca = el('div', `mb-6 ${idx > 0 ? 'pt-6 border-t border-[#E7DDD3]' : ''}`);
         const pctH = Math.round((h.certeza || 0) * 100);
-        
+
         const headerDoenca = el('div', 'flex items-center justify-between mb-4');
         headerDoenca.append(
             el('h4', 'text-sm font-bold text-[#7E2F18] m-0', h.doenca),
@@ -839,5 +855,151 @@ modalBaseRegras?.addEventListener('click', (e) => {
         e.clientX <= rect.left + rect.width;
     if (!isInDialog) {
         modalBaseRegras.close();
+    }
+});
+
+// ---------------------------------------------------------------------------
+// Casos Clínicos de Teste (Demo em 1 Clique) — Simulação Imediata
+// ---------------------------------------------------------------------------
+const CASOS_DEMO = {
+    cetose: {
+        titulo: 'Cetose (Acetonemia)',
+        respostas: {
+            halito_acetona: 's',
+            cetonuria_positiva: 's',
+            perda_condicao_corporal: 's',
+            sinais_nervosos: 's',
+            parto_ultimas_8_semanas: 's',
+            fezes_ressecadas: 's',
+            atonia_ruminal: 's',
+            ruminacao_reduzida: 's',
+        },
+    },
+    hipocalcemia: {
+        titulo: 'Emergência Hipocalcemia',
+        respostas: {
+            decubito_periparto: 's',
+            parto_ultimos_3_dias: 's',
+            tremores_posicao_s: 's',
+            temperatura_baixa: 's',
+            extremidades_frias: 's',
+            atonia_ruminal: 's',
+            apatia: 's',
+            inapetencia: 's',
+        },
+    },
+    mastite: {
+        titulo: 'Mastite Clínica',
+        respostas: {
+            leite_grumos_pus: 's',
+            ubere_inchado_quente: 's',
+            febre: 's',
+            leite_aspecto_normal: 'n',
+            higiene_ordenha_deficiente: 's',
+            queda_producao: 's',
+            inapetencia: 's',
+            ccs_alta: 's',
+        },
+    },
+    mastite: {
+        titulo: 'Mastite Clínica',
+        respostas: {
+            leite_grumos_pus: 's',
+            ubere_inchado_quente: 's',
+            febre: 's',
+            leite_aspecto_normal: 'n',
+            higiene_ordenha_deficiente: 's',
+            queda_producao: 's',
+            inapetencia: 's',
+            ccs_alta: 's',
+        },
+    },
+};
+
+function carregarCasoDemo(chave) {
+    const caso = CASOS_DEMO[chave];
+    if (!caso) return;
+
+    estado.sessao = null;
+    estado.perguntaAtual = null;
+    estado.historico = [];
+    listaHistorico.replaceChildren();
+    painelPrincipal.replaceChildren();
+    acoesLateral.replaceChildren();
+
+    // Injeta perguntas simuladas no histórico lateral para fins de auditoria
+    Object.entries(caso.respostas).forEach(([parametro, opcaoCodigo], idx) => {
+        const rotulo = opcaoCodigo === 's' ? 'Sim' : opcaoCodigo === 'n' ? 'Não' : 'Neutro';
+        const perguntaSimulada = {
+            id: parametro,
+            parametro: parametro,
+            texto: MAPA_ROTULOS[parametro] || parametro.replace(/_/g, ' '),
+        };
+        estado.historico.push({
+            pergunta: perguntaSimulada,
+            opcao: { rotulo, valor: opcaoCodigo },
+        });
+
+        const li = el(
+            'li',
+            'bg-[#F7F2EC] rounded-[10px] py-3 px-4 text-sm text-[#2A211C] flex items-center justify-between gap-3 border border-[#E7DDD3]/80'
+        );
+        li.append(
+            el('span', 'truncate text-sm', `${idx + 1} · ${obterRotuloLegivel(perguntaSimulada)}`),
+            el('span', 'font-bold text-[#7E2F18] shrink-0 text-sm', rotulo)
+        );
+        listaHistorico.append(li);
+    });
+    atualizarHistoricoVazio();
+
+    telaInicio.classList.add('hidden');
+    telaAnamnese.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    executar(async () => {
+        const resultado = await executarCasoDemo(caso.respostas);
+        estado.sessao = resultado.sessionId;
+        return resultado.diagnostico;
+    });
+}
+
+btnDemoCetose?.addEventListener('click', () => carregarCasoDemo('cetose'));
+btnDemoHipocalcemia?.addEventListener('click', () => carregarCasoDemo('hipocalcemia'));
+btnDemoMastite?.addEventListener('click', () => carregarCasoDemo('mastite'));
+
+// ---------------------------------------------------------------------------
+// Painel de Auditoria & Selo da Regra de Ouro (Compliance)
+// ---------------------------------------------------------------------------
+async function abrirPainelAuditoria() {
+    modalAuditoria?.showModal();
+    try {
+        const dados = await obterAuditoriaRegraDeOuro();
+        if (dados && dados.regra_de_ouro) {
+            if (auditoriaDeclaracao) auditoriaDeclaracao.textContent = dados.regra_de_ouro.declaracao_determinismo;
+            if (auditoriaAmbiente) auditoriaAmbiente.textContent = dados.regra_de_ouro.ambiente;
+            if (auditoriaHash) auditoriaHash.textContent = dados.base_conhecimento.sha256;
+            if (auditoriaArquivo) auditoriaArquivo.textContent = `Arquivo: ${dados.base_conhecimento.arquivo} (v${dados.base_conhecimento.versao})`;
+            if (auditoriaRegras) auditoriaRegras.textContent = `${dados.metricas_ciclo.regras_em_memoria} critérios`;
+            if (auditoriaDoencas) auditoriaDoencas.textContent = `${dados.base_conhecimento.total_doencas} cobertas`;
+            if (auditoriaParametros) auditoriaParametros.textContent = `${dados.base_conhecimento.total_parametros} catalogados`;
+        }
+    } catch (e) {
+        console.warn('Falha ao obter auditoria dinâmica, usando dados locais pré-carregados:', e);
+    }
+}
+
+btnAbrirAuditoria?.addEventListener('click', abrirPainelAuditoria);
+btnFecharModalAuditoria?.addEventListener('click', () => modalAuditoria?.close());
+btnEntendidoAuditoria?.addEventListener('click', () => modalAuditoria?.close());
+
+modalAuditoria?.addEventListener('click', (e) => {
+    const rect = modalAuditoria.getBoundingClientRect();
+    const isInDialog =
+        rect.top <= e.clientY &&
+        e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX &&
+        e.clientX <= rect.left + rect.width;
+    if (!isInDialog) {
+        modalAuditoria.close();
     }
 });

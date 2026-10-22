@@ -118,3 +118,27 @@ export async function enviarResposta(sessao, idPergunta, valor) {
     const rank = await request(`/${encodeURIComponent(sessao)}/ranking`);
     return converterDiagnostico(sessao, rank);
 }
+
+/** Executa uma sequência pré-definida de respostas para um caso de teste demo em 1 clique e retorna direto o laudo. */
+export async function executarCasoDemo(respostasMap) {
+    const sessao = await request('/start', { method: 'POST' });
+    const sessionId = sessao.session_id;
+
+    for (const [parametro, opcao] of Object.entries(respostasMap)) {
+        await request(`/${encodeURIComponent(sessionId)}/answer`, {
+            method: 'POST',
+            body: JSON.stringify({ parametro, opcao }),
+        });
+    }
+
+    const rank = await request(`/${encodeURIComponent(sessionId)}/ranking`);
+    return {
+        sessionId,
+        diagnostico: converterDiagnostico(sessionId, rank),
+    };
+}
+
+/** Consulta as métricas oficiais de conformidade e auditoria (Regra de Ouro). */
+export async function obterAuditoriaRegraDeOuro() {
+    return await request('/auditoria');
+}
