@@ -239,7 +239,7 @@ def auditoria_regra_de_ouro(controller: SessionController = Depends(get_controll
                 "Motor de Inferência por Encadeamento para Frente (MYCIN) — "
                 "0% Chamada de LLM / AI Generativa no Diagnóstico Clínico"
             ),
-            "ambiente": "100% Localhost / Offline — Banco SQLite Local & WM em RAM",
+            "ambiente": "100% Localhost / Offline — 100% In-Memory (RAM) & Zero Disco",
             "sem_dependencias_externas": True,
         },
         "base_conhecimento": {
@@ -252,8 +252,8 @@ def auditoria_regra_de_ouro(controller: SessionController = Depends(get_controll
         },
         "metricas_ciclo": {
             "regras_em_memoria": len(kb.criterios),
-            "sessoes_ativas_wm": len(wm_store._memorias) if hasattr(wm_store, "_memorias") else 0,
-            "banco_sqlite": "conectado e operante",
+            "sessoes_ativas_wm": wm_store.total() if hasattr(wm_store, "total") else len(getattr(wm_store, "_sessoes", {})),
+            "armazenamento": "100% Memória RAM (In-Memory)",
         },
     }
 

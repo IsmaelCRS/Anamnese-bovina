@@ -1,18 +1,17 @@
 """
-Repositório de sessões e histórico auditável de respostas (Camada 5b).
+Repositório de sessões e histórico de respostas 100% em Memória RAM (In-Memory).
 
-O repositório não conhece regras clínicas nem o motor: apenas grava e lê dados
-estruturados. O diagnóstico é recebido já serializável (dict) do controlador.
+Substitui completamente o uso de banco de dados relacional e disco: todas as
+sessões, respostas e diagnósticos são mantidos estritamente em estruturas de
+dados Python na memória volátil.
 """
 
 from __future__ import annotations
 
-import json
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-
-from src.db.database import Database
 
 STATUS_EM_ANDAMENTO = "em_andamento"
 STATUS_CONCLUIDA = "concluida"
@@ -40,70 +39,67 @@ class RegistroResposta:
 
 
 class SessaoRepository:
-    """Operações de persistência das tabelas ``sessoes`` e ``historico_respostas``."""
+    """Gerenciador 100% In-Memory de sessões e respostas na memória RAM."""
 
-    def __init__(self, db: Database):
-        self._db = db
+    def __init__(self, db: Any = None):
+        self._sessoes: Dict[str, Dict[str, Any]] = {}
+        self._respostas: Dict[str, List[RegistroResposta]] = {}
+        self._contador_id = 0
+        self._lock = threading.RLock()
 
     # ----------------------------------------------------------------- sessões
     def criar_sessao(self, session_id: str) -> RegistroSessao:
         data_inicio = _agora_iso()
-        with self._db.conectar() as conn:
-            conn.execute(
-                "INSERT INTO sessoes (session_id, data_inicio, status) VALUES (?, ?, ?)",
-                (session_id, data_inicio, STATUS_EM_ANDAMENTO),
-            )
+        with self._lock:
+            self._sessoes[session_id] = {
+                "session_id": session_id,
+                "data_inicio": data_inicio,
+                "status": STATUS_EM_ANDAMENTO,
+                "diagnostico_final": None,
+            }
+            self._respostas[session_id] = []
         return RegistroSessao(session_id, data_inicio, STATUS_EM_ANDAMENTO, None)
 
     def obter_sessao(self, session_id: str) -> Optional[RegistroSessao]:
-        with self._db.conectar() as conn:
-            row = conn.execute(
-                "SELECT session_id, data_inicio, status, diagnostico_final_json "
-                "FROM sessoes WHERE session_id = ?",
-                (session_id,),
-            ).fetchone()
-        if row is None:
-            return None
-        diag = json.loads(row["diagnostico_final_json"]) if row["diagnostico_final_json"] else None
-        return RegistroSessao(row["session_id"], row["data_inicio"], row["status"], diag)
+        with self._lock:
+            dados = self._sessoes.get(session_id)
+            if dados is None:
+                return None
+            return RegistroSessao(
+                dados["session_id"],
+                dados["data_inicio"],
+                dados["status"],
+                dados["diagnostico_final"],
+            )
 
     def atualizar_diagnostico(self, session_id: str, diagnostico: Dict[str, Any],
                               status: Optional[str] = None) -> None:
-        """Grava o snapshot do diagnóstico (e opcionalmente o novo status)."""
-        payload = json.dumps(diagnostico, ensure_ascii=False)
-        with self._db.conectar() as conn:
-            if status is None:
-                conn.execute(
-                    "UPDATE sessoes SET diagnostico_final_json = ? WHERE session_id = ?",
-                    (payload, session_id),
-                )
-            else:
-                conn.execute(
-                    "UPDATE sessoes SET diagnostico_final_json = ?, status = ? WHERE session_id = ?",
-                    (payload, status, session_id),
-                )
+        """Atualiza o snapshot do diagnóstico (e opcionalmente o novo status) em memória RAM."""
+        with self._lock:
+            dados = self._sessoes.get(session_id)
+            if dados is not None:
+                dados["diagnostico_final"] = diagnostico
+                if status is not None:
+                    dados["status"] = status
 
     # ----------------------------------------------------------------- respostas
     def registrar_resposta(self, session_id: str, parametro: str, valor_cf: float) -> RegistroResposta:
         timestamp = _agora_iso()
-        with self._db.conectar() as conn:
-            cur = conn.execute(
-                "INSERT INTO historico_respostas (session_id, parametro, valor_cf, timestamp) "
-                "VALUES (?, ?, ?, ?)",
-                (session_id, parametro, float(valor_cf), timestamp),
-            )
-            novo_id = int(cur.lastrowid)
-        return RegistroResposta(novo_id, session_id, parametro, float(valor_cf), timestamp)
+        with self._lock:
+            self._contador_id += 1
+            novo_id = self._contador_id
+            reg = RegistroResposta(novo_id, session_id, parametro, float(valor_cf), timestamp)
+            if session_id not in self._respostas:
+                self._respostas[session_id] = []
+            self._respostas[session_id].append(reg)
+        return reg
 
     def listar_respostas(self, session_id: str) -> List[RegistroResposta]:
-        """Histórico completo, em ordem cronológica (inclui correções)."""
-        with self._db.conectar() as conn:
-            rows = conn.execute(
-                "SELECT id, session_id, parametro, valor_cf, timestamp "
-                "FROM historico_respostas WHERE session_id = ? ORDER BY id",
-                (session_id,),
-            ).fetchall()
-        return [
-            RegistroResposta(r["id"], r["session_id"], r["parametro"], r["valor_cf"], r["timestamp"])
-            for r in rows
-        ]
+        """Histórico completo em ordem cronológica armazenado em RAM."""
+        with self._lock:
+            return list(self._respostas.get(session_id, []))
+
+    def ping(self) -> bool:
+        """Verifica a integridade do armazenamento em memória RAM."""
+        return True
+

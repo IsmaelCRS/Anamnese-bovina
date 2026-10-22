@@ -1,5 +1,5 @@
 /**
- * api.js — Comunicação com o back-end FastAPI do LactaExpert.
+ * api.js — Comunicação com o back-end FastAPI do BioExpert.
  *
  * Integra com os endpoints REST em /api/v1/session:
  *  - POST /api/v1/session/start

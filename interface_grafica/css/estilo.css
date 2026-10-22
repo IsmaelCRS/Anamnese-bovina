@@ -262,8 +262,27 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Árvore de Decisão — Encadeamento de Regras                         */
+/* Árvore de Decisão — Encadeamento de Regras & Accordion             */
 /* ------------------------------------------------------------------ */
+.accordion-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover {
+    background-color: #F3E3DA;
+}
+
+.accordion-conteudo {
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+}
+
+.accordion-conteudo.colapsado {
+    display: none;
+}
+
 .arvore-container {
     display: flex;
     flex-direction: column;

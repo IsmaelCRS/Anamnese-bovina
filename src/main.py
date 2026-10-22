@@ -73,7 +73,7 @@ def health_check():
                 "camada_3_engine": "src/engine (Motor de Inferência e MYCIN)",
                 "camada_4_wm": "src/wm (Memória de Trabalho temporária em RAM)",
                 "camada_5a_kb": "src/kb (Base de Conhecimento - Regras JSON/CLIPS)",
-                "camada_5b_db": "src/db (Banco de Dados SQLite local)",
+                "camada_5b_db": "src/db (Armazenamento 100% em Memória RAM)",
             },
         }
 
