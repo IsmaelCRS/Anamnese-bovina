@@ -136,7 +136,7 @@
     },
     {
       "id": "parto_72h",
-      "texto": "O parto ocorreu nas últimas 72 horas?",
+      "texto": "Ocorreu parto nas últimas 72 horas?",
       "ajuda": "A maioria dos casos de hipocalcemia clínica ocorre nas primeiras 72 h pós-parto.",
       "categoria": "Histórico reprodutivo"
     },
