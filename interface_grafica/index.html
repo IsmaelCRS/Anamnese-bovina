@@ -61,15 +61,12 @@
                 <span class="font-serif font-bold text-[22px] tracking-tight text-[#7E2F18]">BioExpert</span>
             </a>
 
-            <!-- Direita: Navegação -->
+            <!-- Direita: Ações / Navegação -->
             <nav class="flex items-center gap-6 text-[14px] font-medium text-[#5F5148]" aria-label="Navegação principal">
-                <button id="nav-nova-anamnese" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0">
+                <button id="nav-nova-anamnese" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0 font-medium">
                     Nova anamnese
                 </button>
-                <button id="nav-historico" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0">
-                    Histórico
-                </button>
-                <button id="nav-base-regras" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0">
+                <button id="nav-base-regras" type="button" class="hover:text-[#7E2F18] transition bg-transparent border-0 cursor-pointer p-0 font-medium">
                     Base de regras
                 </button>
             </nav>
@@ -81,7 +78,7 @@
 
         <!-- 1. Tela Inicial -->
         <section id="tela-inicio" class="max-w-[1180px] mx-auto px-6 sm:px-10 py-12 md:py-16">
-            <div class="grid grid-cols-1 min-[900px]:grid-cols-[1.15fr_1fr] gap-14 items-center">
+            <div class="grid grid-cols-1 min-[900px]:grid-cols-[1.15fr_1fr] gap-14 items-center mb-16">
                 
                 <!-- Coluna Esquerda: Apresentação -->
                 <div class="flex flex-col items-start">
@@ -150,27 +147,51 @@
 
                     <hr class="my-6 border-[#E7DDD3]">
 
-                    <!-- Chips Pill de Enfermidades Cobertas -->
+                    <!-- Chips Pill de Enfermidades Cobertas (4 Pilares) -->
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-[#5F5148] uppercase tracking-wide">8 Enfermidades em 4 Pilares</span>
+                        <button id="btn-abrir-como-funciona" type="button" class="text-xs text-[#9A3F25] hover:text-[#7E2F18] font-bold underline bg-transparent border-0 cursor-pointer p-0">
+                            Como Funciona?
+                        </button>
+                    </div>
+
                     <div class="flex flex-wrap gap-2">
                         <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
-                            Mastite
+                            🍼 Glândula Mamária (2)
                         </span>
                         <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
-                            Hipocalcemia
+                            ⚡ Metabólico & Periparto (3)
                         </span>
                         <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
-                            Cetose
+                            🩺 Infeccioso & Podal (2)
                         </span>
                         <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
-                            Acidose ruminal
-                        </span>
-                        <span class="bg-[#F7F2EC] border border-[#E7DDD3] text-[#5F5148] text-[13px] font-medium rounded-full px-3 py-1">
-                            Tristeza parasitária
+                            🌡️ Ambiência (1)
                         </span>
                     </div>
                 </div>
 
             </div>
+
+            <!-- Seção: Conheça as Enfermidades Monitoradas (v3.1.0) — PARTE INFERIOR -->
+            <div>
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+                    <div>
+                        <span class="eyebrow block mb-1">BASE DE CONHECIMENTO CLÍNICA v3.1.0</span>
+                        <h2 class="font-serif text-[28px] sm:text-[34px] font-bold text-[#2A211C] m-0">
+                            Conheça as 8 Enfermidades Monitoradas
+                        </h2>
+                    </div>
+                    <p class="text-sm text-[#5F5148] max-w-[480px] m-0">
+                        Regras declarativas baseadas em literatura de referência (Embrapa Gado de Leite, ESALQ/USP e Manuais de Biosseguridade).
+                    </p>
+                </div>
+
+                <div id="grid-catalogo-doencas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Os cards dos 4 pilares são injetados dinamicamente via app.js -->
+                </div>
+            </div>
+
         </section>
 
         <!-- 2. Tela de Anamnese (Pergunta Atual / Parecer de Triagem + Histórico Lateral) -->
@@ -207,16 +228,46 @@
 
     </main>
 
-    <!-- Modal: Base de Regras & Explicação Técnica -->
-    <dialog id="modal-base-regras" class="rounded-[16px] border border-[#E7DDD3] p-8 max-w-xl w-[90%] bg-white shadow-xl backdrop:bg-black/40">
+    <!-- Modal: Base de Regras & Explicação Didática (Sem Jargões) -->
+    <dialog id="modal-base-regras" class="rounded-[16px] border border-[#E7DDD3] p-8 max-w-2xl w-[90%] bg-white shadow-xl backdrop:bg-black/40">
         <div class="flex items-center justify-between mb-4 border-b border-[#E7DDD3] pb-3">
-            <span class="eyebrow">BASE DE CONHECIMENTO CLÍNICO</span>
+            <div class="flex items-center gap-2">
+                <span class="eyebrow">COMO FUNCIONA O LACTAEXPERT</span>
+            </div>
             <button id="btn-fechar-modal" type="button" class="text-[#5F5148] hover:text-[#7E2F18] border-0 bg-transparent text-xl cursor-pointer p-1" aria-label="Fechar modal">✕</button>
         </div>
-        <div class="text-sm text-[#5F5148] space-y-3">
-            <p>O <strong>BioExpert</strong> é um sistema especialista fundamentado na metodologia clássica do <strong>MYCIN</strong> com extensão por Fatores de Certeza (CF no intervalo [-1, 1]).</p>
-            <p><strong>Heurística de Utilidade:</strong> A escolha da próxima pergunta é otimizada matematicamente calculando o ganho de informação potencial em relação à urgência clínica e à distância para desempate das hipóteses diagnósticas.</p>
-            <p><strong>Enfermidades no MVP:</strong> Mastite Clínica (glândula mamária), Cetose (metabólico periparto) e Hipocalcemia (paralisia puerperal pós-parto).</p>
+        <div class="text-sm text-[#5F5148] space-y-4 leading-relaxed">
+            <div class="p-4 bg-[#F7F2EC] rounded-xl border border-[#E7DDD3]">
+                <h3 class="text-base font-bold text-[#2A211C] m-0 mb-1">Decisão 100% Determinística e Segura</h3>
+                <p class="m-0 text-sm text-[#5F5148]">
+                    Diferente de sistemas de inteligência artificial generativa que podem “alucinar” ou inventar dados, o LactaExpert opera sobre uma <strong>base de regras auditável</strong> baseada estritamente em literatura científica especializada (Embrapa e ESALQ/USP).
+                </p>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-bold text-[#2A211C] m-0 mb-1">Busca Ativa por Utilidade Clínica</h4>
+                <p class="m-0">
+                    O sistema não faz perguntas aleatórias. A cada resposta recebida, o motor calcula matematicamente qual é o próximo sinal clínico capaz de <strong>confirmar ou descartar hipóteses mais rapidamente</strong>, priorizando sempre casos de urgência médica (como paresia puerperal e tristeza parasitária).
+                </p>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-bold text-[#2A211C] m-0 mb-1">Estimativa de Indício (Escala Intuitiva)</h4>
+                <p class="m-0">
+                    Em vez de números técnicos opacos, o sistema classifica a probabilidade do quadro em faixas transparentes:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+                    <div class="p-2.5 rounded-lg border border-red-200 bg-red-50 text-red-900 text-xs">
+                        <strong>🚨 Forte Indício (80–100%)</strong><br>Ação veterinária imediata
+                    </div>
+                    <div class="p-2.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 text-xs">
+                        <strong>⚠️ Provável (40–79%)</strong><br>Atenção e acompanhamento
+                    </div>
+                    <div class="p-2.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-xs">
+                        <strong>🟢 Inconclusivo (&lt; 40%)</strong><br>Coleta de mais evidências
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="mt-6 flex justify-end">
             <button id="btn-entendido-modal" type="button" class="btn-secundario text-sm h-10 px-5">Entendido</button>

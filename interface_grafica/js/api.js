@@ -48,10 +48,6 @@ function converterPergunta(session_id, dataPergunta) {
 
 function converterDiagnostico(session_id, rankingData) {
     const lista = (rankingData.ranking || []).map((h) => {
-        const justificativas = (h.explicacao || []).map(
-            (e) => `${e.pergunta}: ${e.justificativa || (e.efeito === 'reforca' ? 'Reforça suspeita' : 'Atenua suspeita')}`
-        );
-
         let alerta = null;
         if (h.nivel === 'alto') {
             alerta = `Atenção veterinária urgente: ${h.classificacao} (${h.nome})`;
@@ -60,9 +56,19 @@ function converterDiagnostico(session_id, rankingData) {
         return {
             id: h.doenca_id,
             doenca: h.nome,
+            pilar: h.pilar,
+            sistema: h.sistema,
             certeza: Math.max(0, h.cf),
-            justificativa: justificativas,
+            cf_percentual: h.cf_percentual ?? Math.round(Math.max(0, h.cf) * 100),
+            classificacao: h.classificacao,
+            nivel: h.nivel,
+            explicacao: h.explicacao || [],
+            justificativa: (h.explicacao || []).map(
+                (e) => `${e.pergunta}: ${e.justificativa || (e.efeito === 'reforca' ? 'Reforça suspeita' : 'Atenua suspeita')}`
+            ),
             recomendacao: h.conduta || h.recomendacao || '',
+            conduta: h.conduta || '',
+            urgencia: h.urgencia,
             alerta: alerta,
         };
     });
@@ -72,6 +78,7 @@ function converterDiagnostico(session_id, rankingData) {
         tipo: 'diagnostico',
         diagnosticos: lista,
         mensagem: rankingData.motivo_conclusao || 'Anamnese concluída.',
+        rankingCompleto: rankingData,
     };
 }
 
@@ -91,11 +98,12 @@ export async function iniciarAnamnese() {
 
 /** Envia a resposta de uma pergunta e retorna a próxima pergunta ou diagnóstico. */
 export async function enviarResposta(sessao, idPergunta, valor) {
-    // Normaliza valor para o código da escala aceita pela KB ('s', 'p', '?', 'n')
+    // Normaliza valor para o código da escala aceita pela KB ('s', 'p', '?', 'pn', 'n')
     let opcao = valor;
     if (valor === 'sim') opcao = 's';
     else if (valor === 'nao') opcao = 'n';
     else if (valor === 'nao_sei') opcao = '?';
+    else if (valor === 'provavelmente_nao') opcao = 'pn';
 
     await request(`/${encodeURIComponent(sessao)}/answer`, {
         method: 'POST',

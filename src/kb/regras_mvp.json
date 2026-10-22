@@ -36,6 +36,11 @@
       "cf": 0.0
     },
     {
+      "codigo": "pn",
+      "rotulo": "Provavelmente não",
+      "cf": -0.6
+    },
+    {
       "codigo": "n",
       "rotulo": "Não",
       "cf": -1.0
