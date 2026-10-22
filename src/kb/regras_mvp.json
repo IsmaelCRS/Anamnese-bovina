@@ -1,72 +1,152 @@
 {
   "meta": {
-    "nome": "BioExpert / LactaExpert — Base de Conhecimento MVP",
-    "versao": "1.0.0",
-    "descricao": "Catálogo declarativo de parâmetros (perguntas), doenças (prior + urgência) e critérios (doença x parâmetro x CF) para anamnese de bovinos leiteiros em lactação. Consumido pelo Motor de Inferência (src/engine) sem nenhuma lógica procedural embutida.",
-    "aviso": "Priors, urgências e CFs são ILUSTRATIVOS (derivados de codigo_exemplo_base.md e base_regras.clp). Devem ser validados por médico-veterinário antes de qualquer uso real. O sistema NÃO prescreve medicamentos nem dosagens.",
+    "nome": "BioExpert / LactaExpert — Base de Conhecimento Completa",
+    "versao": "2.0.0",
+    "descricao": "Catálogo declarativo de parâmetros (perguntas), doenças (prior + urgência) e critérios (doença × parâmetro × CF) para anamnese de bovinos leiteiros em lactação. Cobre 8 enfermidades em 4 pilares clínicos. Consumido pelo Motor de Inferência (src/engine) sem lógica procedural embutida.",
+    "aviso": "Priors, urgências e CFs foram calibrados a partir de base_regras.clp e da literatura técnica (Embrapa CT-31, Perissinotto ESALQ/USP, Biosseguridade Leiteira). Devem ser validados por médico-veterinário antes de qualquer uso real. O sistema NÃO prescreve medicamentos nem dosagens.",
     "fontes": [
+      "base_regras.clp — LactaExpert v1.0 (CFs, priors, saliências e regras de reforço por enfermidade)",
       "BibliografiaHack/codigo_exemplo_base.md (estruturas parametro/doenca/criterio/resposta, priors e CFs base)",
-      "base_regras.clp — LactaExpert v1.0 (sinais clínicos e pesos de reforço por enfermidade)",
-      "BibliografiaHack/referencias doenças/01_LactaExpert_Especificacao_Clinica.md (pilares clínicos e estratégia MVP)",
-      "BibliografiaHack/referencias doenças/03_Embrapa_Circular_Tecnica_31_Manejo_Sanitario.md (teste da caneca de fundo preto, CMT/CCS)",
-      "BibliografiaHack/referencias doenças/06_Saude_Animal_Riscos_e_Consequencias.md (distúrbios metabólicos)",
+      "BibliografiaHack/referencias doenças/01_LactaExpert_Especificacao_Clinica.md (pilares clínicos, estratégia MVP, Fatores de Certeza MYCIN)",
+      "BibliografiaHack/referencias doenças/02_Biosseguridade_Bovinocultura_Leiteira.md (IBR, BVD, Tuberculose, Brucelose, TPB)",
+      "BibliografiaHack/referencias doenças/03_Embrapa_Circular_Tecnica_31_Manejo_Sanitario.md (teste caneca fundo preto, CMT/CCS, controle de carrapatos e TPB)",
+      "BibliografiaHack/referencias doenças/04_Biologia_Epidemiologia_Carrapato_Bovino.md (Rhipicephalus microplus, Babesia bovis/bigemina, Anaplasma marginale)",
+      "BibliografiaHack/referencias doenças/05_Praticas_de_Manejo_Sanitario.md (periparto, higiene, calendário sanitário)",
+      "BibliografiaHack/referencias doenças/06_Saude_Animal_Riscos_e_Consequencias.md (afecções podais: laminite, dermatite digital, erosão de talão; distúrbios metabólicos: cetose, acidose, timpanismo)",
+      "BibliografiaHack/referencias doenças/09_Climatizacao_Inteligente_Bovinos_Leiteiros.md (ITU, FR, TR, estresse calórico — Perissinotto ESALQ/USP)",
       "RADOSTITS, O. M. et al. Veterinary Medicine. 10. ed. Saunders, 2007."
     ]
   },
-
   "escala_respostas": [
-    { "codigo": "s", "rotulo": "Sim",                "cf": 1.0 },
-    { "codigo": "p", "rotulo": "Provavelmente sim",  "cf": 0.6 },
-    { "codigo": "?", "rotulo": "Não sei",            "cf": 0.0 },
-    { "codigo": "n", "rotulo": "Não",                "cf": -1.0 }
+    {
+      "codigo": "s",
+      "rotulo": "Sim",
+      "cf": 1.0
+    },
+    {
+      "codigo": "p",
+      "rotulo": "Provavelmente sim",
+      "cf": 0.6
+    },
+    {
+      "codigo": "?",
+      "rotulo": "Não sei",
+      "cf": 0.0
+    },
+    {
+      "codigo": "n",
+      "rotulo": "Não",
+      "cf": -1.0
+    }
   ],
-
   "classificacao": [
-    { "cf_minimo": 0.80, "rotulo": "Forte indício", "nivel": "alto",  "recomendacao": "Acionar médico-veterinário imediatamente." },
-    { "cf_minimo": 0.40, "rotulo": "Provável",      "nivel": "medio", "recomendacao": "Agendar avaliação veterinária e monitorar a evolução." },
-    { "cf_minimo": -1.0, "rotulo": "Inconclusivo",  "nivel": "baixo", "recomendacao": "Coletar mais evidências clínicas e laboratoriais." }
+    {
+      "cf_minimo": 0.80,
+      "rotulo": "Forte indício",
+      "nivel": "alto",
+      "recomendacao": "Acionar médico-veterinário imediatamente."
+    },
+    {
+      "cf_minimo": 0.40,
+      "rotulo": "Provável",
+      "nivel": "medio",
+      "recomendacao": "Agendar avaliação veterinária e monitorar a evolução."
+    },
+    {
+      "cf_minimo": -1.0,
+      "rotulo": "Inconclusivo",
+      "nivel": "baixo",
+      "recomendacao": "Coletar mais evidências clínicas e laboratoriais."
+    }
   ],
-
   "criterio_parada": {
     "min_respostas": 3,
     "cf_lider_forte": 0.80,
     "cf_lider_moderado": 0.60,
     "vantagem_minima": 0.30
   },
-
   "doencas": [
     {
       "id": "mastite_clinica",
       "nome": "Mastite Clínica",
-      "pilar": "Afecções da Glândula Mamária",
+      "pilar": "Mamario",
       "sistema": "Úbere / Leite",
       "prior": 0.30,
       "urgencia": 2.0,
-      "descricao": "Inflamação da glândula mamária com alterações visíveis no leite (grumos, pus, sangue, aspecto aquoso) e/ou no úbere (edema, calor, dor).",
+      "descricao": "Inflamação da glândula mamária com alterações visíveis no leite (grumos, pus, sangue, aspecto aquoso) e/ou no úbere (edema, calor, dor). Ref: Embrapa CT-31, base_regras.clp seção 5 (saliência 80).",
       "conduta": "Isolar a ordenha do animal, realizar teste da caneca de fundo preto em todos os quartos e solicitar avaliação veterinária para coleta de amostra e cultura microbiológica."
+    },
+    {
+      "id": "mastite_subclinica",
+      "nome": "Mastite Subclínica",
+      "pilar": "Mamario",
+      "sistema": "Úbere / Leite",
+      "prior": 0.25,
+      "urgencia": 1.5,
+      "descricao": "Inflamação mamária sem alterações visíveis no leite ou úbere, detectável apenas por CMT positivo ou CCS > 200.000 cel/mL. Perda silenciosa de produção. Ref: Embrapa CT-31, base_regras.clp seção 8 (saliência 50).",
+      "conduta": "Realizar CMT em todos os quartos e solicitar CCS individual. Identificar quartos crônicos para tratamento na secagem. Ajustar manejo de ordenha (pré e pós-dipping)."
     },
     {
       "id": "cetose",
       "nome": "Cetose (Acetonemia)",
-      "pilar": "Distúrbios Metabólicos do Periparto",
+      "pilar": "Metabolico",
       "sistema": "Metabólico",
       "prior": 0.20,
       "urgencia": 2.0,
-      "descricao": "Distúrbio do balanço energético negativo no início da lactação, com acúmulo de corpos cetônicos (BHB, acetona) e queda de apetite e produção.",
-      "conduta": "Confirmar com teste de corpos cetônicos (sangue, urina ou leite), revisar o manejo nutricional do período de transição e solicitar avaliação veterinária."
+      "descricao": "Distúrbio do balanço energético negativo no início da lactação, com acúmulo de corpos cetônicos (BHB, acetona) e queda de apetite e produção. Ref: base_regras.clp seção 7 (saliência 60), ref. 06.",
+      "conduta": "Confirmar com teste de corpos cetônicos (BHB sangue > 1,2 mmol/L, fita de urina ou leite), revisar manejo nutricional do período de transição e solicitar avaliação veterinária."
     },
     {
       "id": "hipocalcemia",
       "nome": "Hipocalcemia (Febre do Leite)",
-      "pilar": "Distúrbios Metabólicos do Periparto",
+      "pilar": "Metabolico",
       "sistema": "Periparto / Postura",
       "prior": 0.10,
       "urgencia": 3.0,
-      "descricao": "Queda aguda do cálcio sanguíneo logo após o parto, levando a fraqueza muscular, decúbito, extremidades frias e atonia ruminal. Emergência metabólica.",
+      "descricao": "Queda aguda do cálcio sanguíneo logo após o parto, levando a fraqueza muscular, decúbito, extremidades frias e atonia ruminal. Emergência metabólica. Ref: base_regras.clp seção 4 (saliência 90).",
       "conduta": "EMERGÊNCIA: acionar o médico-veterinário imediatamente. Manter o animal em decúbito esternal (não deixar deitado de lado) em local seguro até o atendimento."
+    },
+    {
+      "id": "acidose_ruminal",
+      "nome": "Acidose Ruminal",
+      "pilar": "Metabolico",
+      "sistema": "Digestivo / Ruminal",
+      "prior": 0.15,
+      "urgencia": 2.0,
+      "descricao": "Queda do pH ruminal por consumo excessivo de carboidratos rapidamente fermentáveis (concentrado), causando diarréia ácida, timpanismo, atonia ruminal e risco de laminite. Ref: base_regras.clp seção 6 (saliência 70), ref. 06.",
+      "conduta": "Suspender concentrado e oferecer volumoso de boa qualidade. Solicitar avaliação veterinária para avaliar gravidade (SARA vs. aguda) e necessidade de fluidoterapia."
+    },
+    {
+      "id": "tpb",
+      "nome": "Tristeza Parasitária Bovina (TPB)",
+      "pilar": "Infeccioso_Podal",
+      "sistema": "Hemoparasitário",
+      "prior": 0.15,
+      "urgencia": 3.5,
+      "descricao": "Complexo causado por Babesia bovis, B. bigemina e Anaplasma marginale, transmitido por Rhipicephalus microplus. Febre alta, anemia hemolítica, icterícia, hemoglobinúria. Risco de óbito em 24–48h. Ref: base_regras.clp seção 3 (saliência 100), refs. 02, 03, 04.",
+      "conduta": "EMERGÊNCIA: acionar o médico-veterinário imediatamente. Proteger o animal do sol e estresse. Verificar histórico de premunição e presença de carrapatos no rebanho."
+    },
+    {
+      "id": "afeccao_podal",
+      "nome": "Afecção Podal",
+      "pilar": "Infeccioso_Podal",
+      "sistema": "Locomotor / Cascos",
+      "prior": 0.15,
+      "urgencia": 1.5,
+      "descricao": "Enfermidades dos cascos incluindo laminite, dermatite digital e erosão de talão. Causa claudicação (manqueira), redução de produção e comprometimento do bem-estar. Ref: base_regras.clp seção 9 (saliência 40), ref. 06.",
+      "conduta": "Contenção e exame detalhado dos cascos. Casqueamento corretivo se necessário. Pedilúvio com sulfato de cobre ou formol. Avaliar relação com acidose ruminal (laminite nutricional)."
+    },
+    {
+      "id": "estresse_termico",
+      "nome": "Estresse Térmico",
+      "pilar": "Ambiencia",
+      "sistema": "Ambiental / Fisiológico",
+      "prior": 0.20,
+      "urgencia": 1.5,
+      "descricao": "Condição de desconforto térmico quando o ITU > 72, levando a aumento da frequência respiratória, hiperthermia, redução de ingestão e queda de produção. Ref: base_regras.clp seção 10 (saliência 30), ref. 09 (Perissinotto ESALQ/USP).",
+      "conduta": "Acionar sistemas de ventilação e aspersão. Garantir acesso livre à água fresca e sombra. Evitar manejo nos horários mais quentes. Monitorar FR e TR dos animais."
     }
   ],
-
   "parametros": [
     {
       "id": "leite_alterado",
@@ -87,6 +167,36 @@
       "categoria": "Úbere / Leite"
     },
     {
+      "id": "dor_palpacao_ubere",
+      "texto": "O animal demonstra dor à palpação do úbere (coice, recuo, vocalização)?",
+      "ajuda": "Palpe cada quarto com cuidado e observe a reação do animal.",
+      "categoria": "Úbere / Leite"
+    },
+    {
+      "id": "cmt_positivo",
+      "texto": "O teste de CMT (California Mastitis Test) foi positivo em algum quarto?",
+      "ajuda": "CMT positivo (2+ ou 3+) sem alteração visual do leite indica mastite subclínica. Responda 'Não sei' se não realizou o teste.",
+      "categoria": "Úbere / Leite"
+    },
+    {
+      "id": "ccs_elevada",
+      "texto": "A Contagem de Células Somáticas (CCS) está acima de 200.000 cel/mL?",
+      "ajuda": "Dado de laboratório ou controle leiteiro. Responda 'Não sei' se não disponível.",
+      "categoria": "Úbere / Leite"
+    },
+    {
+      "id": "historico_mastite",
+      "texto": "O animal tem histórico de mastite em lactações anteriores?",
+      "ajuda": "Consulte a ficha individual do animal.",
+      "categoria": "Histórico"
+    },
+    {
+      "id": "leite_sem_alteracao_visual",
+      "texto": "O leite tem aparência visualmente NORMAL (sem grumos, pus ou sangue)?",
+      "ajuda": "Se o leite está normal visualmente mas CMT foi positivo, isso aponta para mastite subclínica.",
+      "categoria": "Úbere / Leite"
+    },
+    {
       "id": "queda_producao",
       "texto": "Houve queda na produção de leite nos últimos dias?",
       "ajuda": "Considere a produção habitual do animal.",
@@ -96,6 +206,12 @@
       "id": "febre",
       "texto": "A temperatura retal está acima de 39,5 °C?",
       "ajuda": "Faixa normal de bovinos adultos: 38,0 °C a 39,3 °C.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "febre_alta",
+      "texto": "A temperatura retal está acima de 40,0 °C (febre alta)?",
+      "ajuda": "Temperaturas > 40 °C indicam processo infeccioso/inflamatório intenso ou hemoparasitose.",
       "categoria": "Sinais vitais"
     },
     {
@@ -149,7 +265,7 @@
     {
       "id": "cabeca_flanco",
       "texto": "O animal mantém a cabeça voltada para o flanco (postura de auto-auscultação)?",
-      "ajuda": "Postura característica da paresia puerperal.",
+      "ajuda": "Postura patognomônica da paresia puerperal (hipocalcemia estágio II).",
       "categoria": "Postura / Locomoção"
     },
     {
@@ -175,36 +291,614 @@
       "texto": "A vaca já teve três ou mais partos?",
       "ajuda": "Vacas mais velhas mobilizam cálcio com menos eficiência.",
       "categoria": "Histórico reprodutivo"
+    },
+    {
+      "id": "pupilas_dilatadas",
+      "texto": "O animal apresenta pupilas dilatadas (midríase)?",
+      "ajuda": "Sinal de comprometimento neuromuscular por deficiência de cálcio.",
+      "categoria": "Neurológico"
+    },
+    {
+      "id": "alta_producao",
+      "texto": "A vaca produz mais de 30 litros de leite por dia?",
+      "ajuda": "Alta produção aumenta a demanda de cálcio e o risco de hipocalcemia.",
+      "categoria": "Produção"
+    },
+    {
+      "id": "diarreia",
+      "texto": "As fezes estão líquidas, pastosas ou espumosas?",
+      "ajuda": "Fezes ácidas/espumosas sugerem acidose ruminal; líquidas podem indicar processo infeccioso.",
+      "categoria": "Digestivo"
+    },
+    {
+      "id": "fezes_acidas",
+      "texto": "As fezes têm odor ácido forte ou aspecto espumoso/borbulhante?",
+      "ajuda": "Fezes ácidas e brilhantes são características de acidose ruminal.",
+      "categoria": "Digestivo"
+    },
+    {
+      "id": "excesso_concentrado",
+      "texto": "Houve consumo excessivo de concentrado (ração) ou mudança brusca de dieta nos últimos dias?",
+      "ajuda": "Erro de manejo alimentar é a principal causa de acidose ruminal.",
+      "categoria": "Manejo nutricional"
+    },
+    {
+      "id": "timpanismo",
+      "texto": "O animal apresenta distensão abdominal (barriga inchada / timpanismo)?",
+      "ajuda": "Observe a fossa paralombar esquerda. Timpanismo espumoso pode acompanhar acidose.",
+      "categoria": "Digestivo"
+    },
+    {
+      "id": "laminite",
+      "texto": "O animal apresenta sinais de laminite (sensibilidade nos cascos, relutância em andar, postura arqueada)?",
+      "ajuda": "Laminite pode ser sequela de acidose ruminal (histamina e endotoxinas na circulação).",
+      "categoria": "Locomotor / Cascos"
+    },
+    {
+      "id": "desidratacao",
+      "texto": "O animal apresenta sinais de desidratação (olhos fundos, prega de pele lenta, mucosas secas)?",
+      "ajuda": "Teste de prega cutânea no pescoço: retorno lento (> 3s) indica desidratação.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "ruminacao_baixa",
+      "texto": "O tempo de ruminação está visivelmente reduzido (animal não rumina)?",
+      "ajuda": "Bovinos saudáveis ruminam ~8h/dia. Ausência de ruminação por > 12h é preocupante.",
+      "categoria": "Digestivo"
+    },
+    {
+      "id": "anemia",
+      "texto": "O animal apresenta mucosas pálidas (olho, gengiva, vulva)?",
+      "ajuda": "Mucosas pálidas ou porcelana indicam anemia. Compare com animais saudáveis.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "ictericia",
+      "texto": "As mucosas ou a pele apresentam coloração amarelada (icterícia)?",
+      "ajuda": "Icterícia indica destruição massiva de hemácias (hemólise) ou doença hepática.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "hemoglobinuria",
+      "texto": "A urina está escura, avermelhada ou cor de café (hemoglobinúria)?",
+      "ajuda": "Urina escura/avermelhada é forte evidência de hemólise intravascular (Babesia bovis).",
+      "categoria": "Urinário"
+    },
+    {
+      "id": "presenca_carrapatos",
+      "texto": "Há presença de carrapatos (Rhipicephalus microplus) no animal ou no rebanho?",
+      "ajuda": "Carrapatos são vetores de Babesia spp. e Anaplasma marginale (agentes da TPB).",
+      "categoria": "Parasitário"
+    },
+    {
+      "id": "apatia",
+      "texto": "O animal está apático, prostrado ou isolado do rebanho?",
+      "ajuda": "Apatia e isolamento indicam comprometimento sistêmico.",
+      "categoria": "Comportamento"
+    },
+    {
+      "id": "taquicardia",
+      "texto": "A frequência cardíaca está elevada (> 80 bpm)?",
+      "ajuda": "FC normal de bovinos adultos: 60–80 bpm. Taquicardia compensatória ocorre na anemia severa.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "claudicacao",
+      "texto": "O animal apresenta claudicação (manqueira / mancando)?",
+      "ajuda": "Observe o animal em deslocamento: passos curtos, cabeça balançando, apoio desigual.",
+      "categoria": "Locomotor / Cascos"
+    },
+    {
+      "id": "lesao_interdigital",
+      "texto": "Há lesão visível no espaço interdigital (entre os cascos)?",
+      "ajuda": "Lesões interdigitais sugerem dermatite digital, fleimão ou erosão de talão.",
+      "categoria": "Locomotor / Cascos"
+    },
+    {
+      "id": "odor_fetido_casco",
+      "texto": "Há odor fétido (podridão) saindo do casco afetado?",
+      "ajuda": "Odor fétido indica necrose tecidual e processo infeccioso ativo.",
+      "categoria": "Locomotor / Cascos"
+    },
+    {
+      "id": "apoio_anormal",
+      "texto": "O animal evita apoiar um dos membros ou alterna o peso constantemente?",
+      "ajuda": "Deslocamento de peso indica dor podal significativa.",
+      "categoria": "Locomotor / Cascos"
+    },
+    {
+      "id": "itu_elevado",
+      "texto": "O Índice de Temperatura e Umidade (ITU) do ambiente está acima de 72?",
+      "ajuda": "ITU > 72 indica condição de estresse calórico para bovinos leiteiros (Perissinotto, ESALQ/USP).",
+      "categoria": "Ambiência"
+    },
+    {
+      "id": "freq_respiratoria_alta",
+      "texto": "A frequência respiratória está acima de 60 movimentos por minuto?",
+      "ajuda": "FR normal de bovinos: 15–35 mov/min. Valores > 60 indicam estresse térmico severo.",
+      "categoria": "Sinais vitais"
+    },
+    {
+      "id": "temp_retal_elevada_calor",
+      "texto": "A temperatura retal está elevada (> 39,5 °C) em dia de calor intenso?",
+      "ajuda": "Elevação da TR em dias quentes sem outro sinal infeccioso sugere estresse calórico.",
+      "categoria": "Ambiência"
+    },
+    {
+      "id": "salivacao_excessiva",
+      "texto": "O animal apresenta salivação excessiva ou respira com a boca aberta?",
+      "ajuda": "Mecanismos de termorregulação ativados pelo estresse calórico.",
+      "categoria": "Ambiência"
+    },
+    {
+      "id": "agrupamento_sombra",
+      "texto": "Os animais estão agrupados buscando sombra ou água?",
+      "ajuda": "Comportamento de busca de conforto térmico é indicador de ITU elevado.",
+      "categoria": "Ambiência"
     }
   ],
-
   "criterios": [
-    { "doenca": "mastite_clinica", "parametro": "leite_alterado",     "cf":  0.70, "justificativa": "Leite com grumos, pus ou aquoso é o sinal cardinal da mastite clínica." },
-    { "doenca": "mastite_clinica", "parametro": "ubere_inchado",      "cf":  0.70, "justificativa": "Edema, calor e dor no úbere indicam processo inflamatório mamário." },
-    { "doenca": "mastite_clinica", "parametro": "caneca_positiva",    "cf":  0.65, "justificativa": "Grumos retidos na caneca de fundo preto confirmam alteração clínica do leite." },
-    { "doenca": "mastite_clinica", "parametro": "queda_producao",     "cf":  0.30, "justificativa": "Dano ao tecido mamário reduz a produção do quarto afetado." },
-    { "doenca": "mastite_clinica", "parametro": "febre",              "cf":  0.20, "justificativa": "Febre indica resposta sistêmica (mastite clínica aguda)." },
-    { "doenca": "mastite_clinica", "parametro": "reduz_apetite",      "cf":  0.10, "justificativa": "Casos agudos podem cursar com redução de ingestão." },
-
-    { "doenca": "cetose", "parametro": "halito_cetonico",   "cf":  0.80, "justificativa": "Odor de acetona no hálito/leite/urina é sinal patognomônico de cetose." },
-    { "doenca": "cetose", "parametro": "corpos_cetonicos",  "cf":  0.75, "justificativa": "BHB > 1,2 mmol/L ou corpos cetônicos positivos confirmam laboratorialmente." },
-    { "doenca": "cetose", "parametro": "reduz_apetite",     "cf":  0.40, "justificativa": "Recusa do concentrado é típica do balanço energético negativo." },
-    { "doenca": "cetose", "parametro": "queda_producao",    "cf":  0.30, "justificativa": "Queda abrupta na produção de leite acompanha a cetose." },
-    { "doenca": "cetose", "parametro": "inicio_lactacao",   "cf":  0.30, "justificativa": "Primeiros 60 dias de lactação concentram o risco de cetose." },
-    { "doenca": "cetose", "parametro": "perda_condicao",    "cf":  0.30, "justificativa": "Perda de escore corporal indica mobilização excessiva de reservas." },
-    { "doenca": "cetose", "parametro": "sinais_nervosos",   "cf":  0.25, "justificativa": "Sinais nervosos podem indicar a forma nervosa da cetose." },
-    { "doenca": "cetose", "parametro": "parto_72h",         "cf":  0.10, "justificativa": "Pós-parto imediato já inicia o período de risco metabólico." },
-    { "doenca": "cetose", "parametro": "febre",             "cf": -0.20, "justificativa": "Cetose primária cursa sem febre; febre sugere outra causa." },
-
-    { "doenca": "hipocalcemia", "parametro": "decubito",           "cf":  0.80, "justificativa": "Vaca caída no periparto é altamente sugestiva de hipocalcemia." },
-    { "doenca": "hipocalcemia", "parametro": "cabeca_flanco",      "cf":  0.60, "justificativa": "Cabeça voltada para o flanco é postura característica da paresia puerperal." },
-    { "doenca": "hipocalcemia", "parametro": "parto_72h",          "cf":  0.50, "justificativa": "A maioria dos casos ocorre nas primeiras 72 h pós-parto." },
-    { "doenca": "hipocalcemia", "parametro": "extremidades_frias", "cf":  0.40, "justificativa": "Hipotermia periférica é sinal clássico da hipocalcemia." },
-    { "doenca": "hipocalcemia", "parametro": "tremores_fraqueza",  "cf":  0.40, "justificativa": "Tremores e fraqueza marcam o estágio inicial (em estação)." },
-    { "doenca": "hipocalcemia", "parametro": "atonia_ruminal",     "cf":  0.30, "justificativa": "O cálcio é necessário para a contração do rúmen; sua falta causa atonia." },
-    { "doenca": "hipocalcemia", "parametro": "multipara",          "cf":  0.20, "justificativa": "Vacas com 3+ partos têm maior predisposição." },
-    { "doenca": "hipocalcemia", "parametro": "queda_producao",     "cf":  0.10, "justificativa": "Queda súbita de produção acompanha o quadro agudo." },
-    { "doenca": "hipocalcemia", "parametro": "inicio_lactacao",    "cf":  0.10, "justificativa": "Início de lactação aumenta a demanda de cálcio." },
-    { "doenca": "hipocalcemia", "parametro": "febre",              "cf": -0.40, "justificativa": "Febre é incompatível com hipocalcemia, que cursa com hipotermia." }
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "leite_alterado",
+      "cf": 0.70,
+      "justificativa": "Leite com grumos, pus ou aquoso é o sinal cardinal da mastite clínica (CLP: cf 0.6 inicial + reforço)."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "ubere_inchado",
+      "cf": 0.70,
+      "justificativa": "Úbere edemaciado com calor e dor confirma processo inflamatório mamário (CLP: reforço 0.2)."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "caneca_positiva",
+      "cf": 0.65,
+      "justificativa": "Grumos retidos na caneca de fundo preto confirmam mastite clínica (CLP: cf 0.65 inicial). Embrapa CT-31."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "dor_palpacao_ubere",
+      "cf": 0.55,
+      "justificativa": "Dor à palpação isolada sugere mastite com componente inflamatório local (CLP: cf 0.55 início)."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "queda_producao",
+      "cf": 0.30,
+      "justificativa": "Dano ao tecido mamário reduz a produção do quarto afetado (CLP: reforço 0.05)."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "febre",
+      "cf": 0.20,
+      "justificativa": "Febre indica resposta sistêmica em mastite clínica aguda (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "reduz_apetite",
+      "cf": 0.10,
+      "justificativa": "Casos agudos podem cursar com redução de ingestão."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "cmt_positivo",
+      "cf": 0.25,
+      "justificativa": "CMT positivo apoia inflamação mamária, mas não diferencia clínica de subclínica sozinho."
+    },
+    {
+      "doenca": "mastite_clinica",
+      "parametro": "leite_sem_alteracao_visual",
+      "cf": -0.40,
+      "justificativa": "Leite visualmente normal é contra-evidência para mastite CLÍNICA (aponta para subclínica)."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "cmt_positivo",
+      "cf": 0.75,
+      "justificativa": "CMT positivo sem alteração visual do leite é o diagnóstico padrão da mastite subclínica (CLP: cf 0.7). Embrapa CT-31."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "ccs_elevada",
+      "cf": 0.70,
+      "justificativa": "CCS > 200.000/mL sem sinais clínicos indica mastite subclínica (CLP: cf 0.65 + reforço 0.15)."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "leite_sem_alteracao_visual",
+      "cf": 0.30,
+      "justificativa": "Leite visualmente normal é pré-requisito da definição de subclínica."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "queda_producao",
+      "cf": 0.25,
+      "justificativa": "Queda gradual e silenciosa na produção é típica da subclínica (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "historico_mastite",
+      "cf": 0.20,
+      "justificativa": "Histórico de mastite prévia aumenta risco de reincidência subclínica (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "leite_alterado",
+      "cf": -0.50,
+      "justificativa": "Leite com alteração visível exclui a definição de subclínica (aponta para clínica)."
+    },
+    {
+      "doenca": "mastite_subclinica",
+      "parametro": "ubere_inchado",
+      "cf": -0.30,
+      "justificativa": "Úbere edemaciado é sinal de mastite clínica, não subclínica."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "halito_cetonico",
+      "cf": 0.80,
+      "justificativa": "Odor de acetona no hálito/leite/urina é sinal patognomônico de cetose (CLP: cf 0.7 inicial + reforço 0.25)."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "corpos_cetonicos",
+      "cf": 0.75,
+      "justificativa": "BHB > 1,2 mmol/L confirma laboratorialmente (CLP: reforço 0.2)."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "reduz_apetite",
+      "cf": 0.40,
+      "justificativa": "Recusa do concentrado é típica do BEN. Inapetência nos primeiros 60 DEL (CLP: cf 0.5 início)."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "queda_producao",
+      "cf": 0.30,
+      "justificativa": "Queda abrupta na produção de leite acompanha a cetose (CLP: reforço 0.15)."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "inicio_lactacao",
+      "cf": 0.30,
+      "justificativa": "Primeiros 60 dias de lactação concentram o risco de cetose."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "perda_condicao",
+      "cf": 0.30,
+      "justificativa": "Perda de ECC < 2,5 indica mobilização excessiva de reservas (CLP: reforço 0.1 com contexto ECC)."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "sinais_nervosos",
+      "cf": 0.25,
+      "justificativa": "Sinais nervosos podem indicar a forma nervosa da cetose (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "parto_72h",
+      "cf": 0.10,
+      "justificativa": "Pós-parto imediato já inicia o período de risco metabólico."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "febre",
+      "cf": -0.20,
+      "justificativa": "Cetose primária cursa sem febre; febre sugere outra causa."
+    },
+    {
+      "doenca": "cetose",
+      "parametro": "ruminacao_baixa",
+      "cf": 0.20,
+      "justificativa": "Redução da ruminação acompanha inapetência cetótica."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "decubito",
+      "cf": 0.80,
+      "justificativa": "Vaca caída no periparto é altamente sugestiva de hipocalcemia (CLP: cf 0.75 + reforço)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "cabeca_flanco",
+      "cf": 0.70,
+      "justificativa": "Cabeça voltada para o flanco é postura PATOGNOMÔNICA da paresia puerperal (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "parto_72h",
+      "cf": 0.50,
+      "justificativa": "Maioria dos casos ocorre nas primeiras 72 h pós-parto (CLP: contexto fase periparto)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "extremidades_frias",
+      "cf": 0.40,
+      "justificativa": "Hipotermia periférica é sinal clássico da hipocalcemia (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "tremores_fraqueza",
+      "cf": 0.40,
+      "justificativa": "Tremores e fraqueza marcam o estágio inicial em estação."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "atonia_ruminal",
+      "cf": 0.30,
+      "justificativa": "O cálcio é necessário para contração do rúmen; sua falta causa atonia (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "pupilas_dilatadas",
+      "cf": 0.25,
+      "justificativa": "Pupilas dilatadas indicam comprometimento neuromuscular por deficiência de Ca (CLP: reforço 0.05)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "multipara",
+      "cf": 0.20,
+      "justificativa": "Vacas com 3+ partos (> 6 anos) têm maior predisposição (CLP: reforço 0.05)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "alta_producao",
+      "cf": 0.15,
+      "justificativa": "Alta produção (> 30L/dia) aumenta demanda de Ca (CLP: reforço 0.05)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "queda_producao",
+      "cf": 0.10,
+      "justificativa": "Queda súbita de produção acompanha o quadro agudo."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "inicio_lactacao",
+      "cf": 0.10,
+      "justificativa": "Início de lactação aumenta a demanda de cálcio."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "febre",
+      "cf": -0.40,
+      "justificativa": "Febre é INCOMPATÍVEL com hipocalcemia, que cursa com hipotermia (CLP: diferencial, saliência 20)."
+    },
+    {
+      "doenca": "hipocalcemia",
+      "parametro": "febre_alta",
+      "cf": -0.50,
+      "justificativa": "Febre alta descarta fortemente hipocalcemia (CLP: regra diferencial reduz CF a 30%)."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "fezes_acidas",
+      "cf": 0.75,
+      "justificativa": "Fezes ácidas/espumosas são altamente sugestivas de acidose ruminal (CLP: cf 0.6 início com diarreia)."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "diarreia",
+      "cf": 0.65,
+      "justificativa": "Diarreia com fezes ácidas é sinal cardinal de acidose (CLP: cf 0.6 + excesso concentrado 0.55)."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "excesso_concentrado",
+      "cf": 0.60,
+      "justificativa": "Consumo excessivo de concentrado é a causa primária (CLP: cf 0.55 com diarréia). Ref. 06."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "ruminacao_baixa",
+      "cf": 0.50,
+      "justificativa": "Atonia/hipomotilidade ruminal por pH baixo é achado consistente."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "atonia_ruminal",
+      "cf": 0.40,
+      "justificativa": "Atonia ruminal ocorre quando pH ruminal cai abaixo de 5.0 (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "timpanismo",
+      "cf": 0.40,
+      "justificativa": "Timpanismo espumoso pode acompanhar quadro de acidose (CLP: reforço 0.15)."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "laminite",
+      "cf": 0.35,
+      "justificativa": "Laminite é sequela clássica da acidose (histamina/endotoxinas). CLP: reforço 0.15."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "desidratacao",
+      "cf": 0.25,
+      "justificativa": "Desidratação e apatia acompanham acidose severa (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "reduz_apetite",
+      "cf": 0.25,
+      "justificativa": "Redução de ingestão acompanha o quadro."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "queda_producao",
+      "cf": 0.15,
+      "justificativa": "Queda de produção é consequência da redução de ingestão."
+    },
+    {
+      "doenca": "acidose_ruminal",
+      "parametro": "halito_cetonico",
+      "cf": -0.30,
+      "justificativa": "Hálito cetônico aponta para cetose, não acidose."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "febre_alta",
+      "cf": 0.75,
+      "justificativa": "Febre alta (> 40 °C) associada a sinais hematológicos é forte suspeita de TPB (CLP: cf 0.7 com anemia)."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "anemia",
+      "cf": 0.75,
+      "justificativa": "Anemia (mucosas pálidas/porcelana) é sinal cardinal da TPB — destruição de hemácias (CLP: cf 0.7 com febre)."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "hemoglobinuria",
+      "cf": 0.70,
+      "justificativa": "Urina escura/avermelhada é forte evidência de Babesia bovis — hemólise massiva (CLP: reforço 0.2)."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "ictericia",
+      "cf": 0.50,
+      "justificativa": "Icterícia reforça hemólise intravascular típica de TPB (CLP: reforço 0.15)."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "presenca_carrapatos",
+      "cf": 0.40,
+      "justificativa": "Presença de Rhipicephalus microplus confirma exposição ao vetor (CLP: cf 0.5 com febre, reforço 0.1). Refs. 03, 04."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "apatia",
+      "cf": 0.25,
+      "justificativa": "Apatia e prostração indicam comprometimento sistêmico (CLP: reforço 0.05)."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "taquicardia",
+      "cf": 0.20,
+      "justificativa": "Taquicardia compensatória por anemia severa (CLP: reforço 0.05)."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "queda_producao",
+      "cf": 0.15,
+      "justificativa": "Queda de produção acompanha o quadro sistêmico."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "desidratacao",
+      "cf": 0.15,
+      "justificativa": "Desidratação acompanha quadro severo de TPB."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "febre",
+      "cf": 0.35,
+      "justificativa": "Febre moderada também pode estar presente na TPB."
+    },
+    {
+      "doenca": "tpb",
+      "parametro": "extremidades_frias",
+      "cf": -0.30,
+      "justificativa": "Extremidades frias sugerem hipocalcemia, não TPB (que cursa com febre alta)."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "claudicacao",
+      "cf": 0.75,
+      "justificativa": "Claudicação (manqueira) é o sinal cardinal de problema podal (CLP: cf 0.5 + reforços). Ref. 06."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "lesao_interdigital",
+      "cf": 0.65,
+      "justificativa": "Lesão interdigital visível sugere dermatite digital, fleimão ou erosão de talão (CLP: reforço 0.2)."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "odor_fetido_casco",
+      "cf": 0.45,
+      "justificativa": "Odor fétido no casco sugere necrose e processo infeccioso ativo (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "apoio_anormal",
+      "cf": 0.40,
+      "justificativa": "Deslocamento de peso indica dor podal significativa (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "laminite",
+      "cf": 0.50,
+      "justificativa": "Laminite diagnosticada — pode ter origem nutricional (acidose) ou mecânica (CLP: reforço 0.15)."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "queda_producao",
+      "cf": 0.15,
+      "justificativa": "Dor podal reduz ingestão e consequentemente produção de leite."
+    },
+    {
+      "doenca": "afeccao_podal",
+      "parametro": "reduz_apetite",
+      "cf": 0.15,
+      "justificativa": "Dor crônica reduz a ida ao cocho e a ingestão de alimento."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "itu_elevado",
+      "cf": 0.70,
+      "justificativa": "ITU > 72 é o critério ambiental primário de estresse calórico (Perissinotto ESALQ/USP). CLP: cf 0.6 com FR alta."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "freq_respiratoria_alta",
+      "cf": 0.70,
+      "justificativa": "FR > 60 mov/min indica estresse térmico severo (CLP: cf 0.6 com ITU). Ref. 09."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "temp_retal_elevada_calor",
+      "cf": 0.55,
+      "justificativa": "TR elevada em dia quente sem outro foco infeccioso confirma estresse calórico (CLP: cf 0.55)."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "salivacao_excessiva",
+      "cf": 0.35,
+      "justificativa": "Salivação excessiva e boca aberta são mecanismos de termorregulação (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "agrupamento_sombra",
+      "cf": 0.25,
+      "justificativa": "Agrupamento na sombra é comportamento de busca de conforto térmico (CLP: reforço 0.05)."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "queda_producao",
+      "cf": 0.30,
+      "justificativa": "Queda de produção é consequência direta do estresse calórico (CLP: reforço 0.15). Ref. 09."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "reduz_apetite",
+      "cf": 0.25,
+      "justificativa": "Redução de ingestão de matéria seca é resposta fisiológica ao calor (CLP: reforço 0.1)."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "extremidades_frias",
+      "cf": -0.35,
+      "justificativa": "Extremidades frias são incompatíveis com estresse calórico (sugerem hipocalcemia)."
+    },
+    {
+      "doenca": "estresse_termico",
+      "parametro": "febre_alta",
+      "cf": -0.20,
+      "justificativa": "Febre alta (> 40 °C) sugere processo infeccioso, não apenas calor ambiental."
+    }
   ]
 }
