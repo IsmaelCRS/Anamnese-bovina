@@ -1,20 +1,45 @@
 /**
- * app.js — Lógica das telas.
+ * app.js — Controlador de Apresentação e Interação da Interface Gráfica.
  *
- * Este arquivo NÃO conhece as perguntas nem as regras: ele apenas mostra o que
- * o back-end (real ou simulado) devolve. Toda comunicação passa pelo api.js.
+ * Não conhece as regras nem a base clínica diretamente: consome exclusivamente
+ * a camada de API (api.js), mantendo o fluxo estrito:
+ * início -> perguntas -> parecer de triagem com explicabilidade.
  */
 import { iniciarAnamnese, enviarResposta, USANDO_MOCK } from './api.js';
+import { icone } from './icones.js';
 
-// Elementos da página
+// ---------------------------------------------------------------------------
+// Elementos da Página
+// ---------------------------------------------------------------------------
 const telaInicio = document.getElementById('tela-inicio');
 const telaAnamnese = document.getElementById('tela-anamnese');
 const btnIniciar = document.getElementById('btn-iniciar');
-const painel = document.getElementById('painel-principal');
+const btnVerHistorico = document.getElementById('btn-ver-historico');
+const painelPrincipal = document.getElementById('painel-principal');
 const listaHistorico = document.getElementById('lista-historico');
-const avisoMock = document.getElementById('aviso-mock');
+const historicoVazio = document.getElementById('historico-vazio');
+const acoesLateral = document.getElementById('acoes-lateral');
 
-// Estado da anamnese atual
+const navNovaAnamnese = document.getElementById('nav-nova-anamnese');
+const navHistorico = document.getElementById('nav-historico');
+const navBaseRegras = document.getElementById('nav-base-regras');
+const modalBaseRegras = document.getElementById('modal-base-regras');
+const btnFecharModal = document.getElementById('btn-fechar-modal');
+const btnEntendidoModal = document.getElementById('btn-entendido-modal');
+const iconeBtnIniciar = document.getElementById('icone-btn-iniciar');
+const iconePranchetaVazia = document.getElementById('icone-prancheta-vazia');
+
+// Injeção de ícones SVG estáticos locais
+if (iconeBtnIniciar) {
+    iconeBtnIniciar.appendChild(icone('estetoscopio', 'w-5 h-5 text-white', 'Estetoscópio'));
+}
+if (iconePranchetaVazia) {
+    iconePranchetaVazia.appendChild(icone('prancheta', 'w-10 h-10', 'Prancheta vazia'));
+}
+
+// ---------------------------------------------------------------------------
+// Estado da Anamnese Ativa
+// ---------------------------------------------------------------------------
 const estado = {
     sessao: null,
     perguntaAtual: null,
@@ -22,16 +47,71 @@ const estado = {
     ocupado: false,
 };
 
-const CLASSE_BOTAO =
-    'bg-rust text-white px-6 py-3 rounded-full text-lg shadow-md hover:opacity-90 hover:-translate-y-0.5 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0';
+// ---------------------------------------------------------------------------
+// Mapeamento Semântico para Rótulos Clínicos Legíveis (Nunca IDs snake_case)
+// ---------------------------------------------------------------------------
+const MAPA_ROTULOS = {
+    decubito: 'Decúbito (vaca caída)',
+    hipocalcemia_previa: 'Histórico de hipocalcemia prévia',
+    temperatura_subnormal: 'Temperatura corporal subnormal (<38°C)',
+    periparto_recente: 'Periparto recente (<72 horas do parto)',
+    tremores_musculares: 'Tremores e espasmos musculares',
+    diminuicao_producao: 'Queda brusca de produção leiteira',
+    inapetencia: 'Perda acentuada de apetite',
+    halito_cetonico: 'Odor cetônico no ar expirado/urina',
+    escore_corporal_baixo: 'Escore de condição corporal reduzido',
+    alteracao_leite: 'Alterações macroscópicas no leite',
+    grumos_leite: 'Grumos visíveis no teste da caneca preta',
+    edema_ubere: 'Edema, calor ou dor na glândula mamária',
+    leite_aquoso: 'Aspecto aquoso ou seroso da secreção',
+    febre: 'Hipertermia / Febre (>39,5°C)',
+    queda_apetite: 'Diminuição do consumo voluntário',
+    diminuicao_rumina: 'Hipomotilidade ou atonia ruminal',
+    perda_peso: 'Perda acelerada de peso corporal',
+    fezes_secas: 'Fezes secas e escurecidas com muco',
+};
 
-if (USANDO_MOCK) avisoMock.classList.remove('hidden');
+function obterRotuloLegivel(pergunta) {
+    if (!pergunta) return 'Avaliação';
+    const id = pergunta.id || pergunta.parametro || '';
+    if (MAPA_ROTULOS[id]) return MAPA_ROTULOS[id];
+    if (pergunta.resumo && !pergunta.resumo.includes('_')) {
+        return pergunta.resumo;
+    }
+    const formatado = id.replace(/_/g, ' ');
+    return formatado.charAt(0).toUpperCase() + formatado.slice(1);
+}
+
+const MAPA_CATEGORIAS = {
+    decubito: 'Postura & Locomoção',
+    hipocalcemia_previa: 'Histórico Clínico',
+    temperatura_subnormal: 'Sinais Vitais',
+    periparto_recente: 'Período de Transição',
+    tremores_musculares: 'Avaliação Neuromuscular',
+    diminuicao_producao: 'Desempenho Produtivo',
+    inapetencia: 'Consumo Alimentar',
+    halito_cetonico: 'Avaliação Metabólica',
+    escore_corporal_baixo: 'Condição Corporal',
+    alteracao_leite: 'Qualidade do Leite',
+    grumos_leite: 'Exame de Mastite (Caneca Preta)',
+    edema_ubere: 'Glândula Mamária',
+    leite_aquoso: 'Exame do Leite',
+    febre: 'Sinais Vitais',
+    queda_apetite: 'Consumo Alimentar',
+    diminuicao_rumina: 'Sistema Digestório',
+    perda_peso: 'Condição Corporal',
+    fezes_secas: 'Excreção & Digestão',
+};
+
+function obterCategoria(pergunta) {
+    if (pergunta && pergunta.categoria) return pergunta.categoria;
+    const id = pergunta ? (pergunta.id || pergunta.parametro || '') : '';
+    return MAPA_CATEGORIAS[id] || 'Avaliação Clínica';
+}
 
 // ---------------------------------------------------------------------------
-// Utilitários
+// Utilitários DOM
 // ---------------------------------------------------------------------------
-
-/** Cria um elemento. Usa textContent (nunca innerHTML) para dados vindos do servidor. */
 function el(tag, classes = '', texto) {
     const elemento = document.createElement(tag);
     if (classes) elemento.className = classes;
@@ -39,25 +119,16 @@ function el(tag, classes = '', texto) {
     return elemento;
 }
 
-function botao(texto, id, aoClicar, classesExtras = '') {
-    const b = el('button', `${CLASSE_BOTAO} ${classesExtras}`, texto);
-    b.id = id;
-    b.type = 'button';
-    b.addEventListener('click', aoClicar);
-    return b;
-}
-
 // ---------------------------------------------------------------------------
-// Fluxo
+// Fluxo de Execução
 // ---------------------------------------------------------------------------
-
-/** Executa uma chamada ao back-end cuidando de carregamento e erros. */
 async function executar(acao) {
     if (estado.ocupado) return;
     estado.ocupado = true;
     mostrarCarregando();
     try {
-        tratarResposta(await acao());
+        const resultado = await acao();
+        tratarResposta(resultado);
     } catch (erro) {
         console.error(erro);
         mostrarErro(erro.message, () => executar(acao));
@@ -76,7 +147,7 @@ function tratarResposta(resposta) {
         estado.perguntaAtual = null;
         mostrarDiagnostico(resposta);
     } else {
-        throw new Error(`Resposta desconhecida do servidor: "${resposta.tipo}".`);
+        throw new Error(`Resposta desconhecida recebida: "${resposta.tipo}".`);
     }
 }
 
@@ -85,11 +156,15 @@ function iniciar() {
     estado.perguntaAtual = null;
     estado.historico = [];
     listaHistorico.replaceChildren();
-    painel.replaceChildren();
+    painelPrincipal.replaceChildren();
+    acoesLateral.replaceChildren();
+
+    atualizarHistoricoVazio();
 
     telaInicio.classList.add('hidden');
     telaAnamnese.classList.remove('hidden');
 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     executar(() => iniciarAnamnese());
 }
 
@@ -97,129 +172,339 @@ function responder(opcao) {
     const pergunta = estado.perguntaAtual;
     executar(async () => {
         const resposta = await enviarResposta(estado.sessao, pergunta.id, opcao.valor);
-        adicionarAoHistorico(pergunta, opcao); // só registra se o servidor aceitou
+        adicionarAoHistorico(pergunta, opcao);
         return resposta;
     });
 }
 
+function adicionarAoHistorico(pergunta, opcao) {
+    estado.historico.push({ pergunta, opcao });
+    atualizarHistoricoVazio();
+
+    const li = el(
+        'li',
+        'bg-[#F7F2EC] rounded-[10px] py-3 px-4 text-sm text-[#2A211C] flex items-center justify-between gap-3 border border-[#E7DDD3]/80 surgir'
+    );
+
+    const rotuloLegivel = obterRotuloLegivel(pergunta);
+    const spanTexto = el('span', 'truncate text-sm', `${estado.historico.length} · ${rotuloLegivel}`);
+    spanTexto.title = pergunta.texto;
+
+    const spanResp = el('span', 'font-bold text-[#7E2F18] shrink-0 text-sm', opcao.rotulo);
+
+    li.append(spanTexto, spanResp);
+    listaHistorico.append(li);
+}
+
+function atualizarHistoricoVazio() {
+    if (estado.historico.length === 0) {
+        historicoVazio.classList.remove('hidden');
+        listaHistorico.classList.add('hidden');
+    } else {
+        historicoVazio.classList.add('hidden');
+        listaHistorico.classList.remove('hidden');
+    }
+}
+
 // ---------------------------------------------------------------------------
-// Renderização
+// Renderização das Telas
 // ---------------------------------------------------------------------------
 
 function mostrarCarregando() {
-    painel.querySelector('#caixa-erro')?.remove();
-    painel.querySelectorAll('button').forEach((b) => (b.disabled = true));
+    painelPrincipal.querySelector('#caixa-erro')?.remove();
+    painelPrincipal.querySelectorAll('button').forEach((b) => (b.disabled = true));
 
-    const indicador = el('div', 'flex items-center justify-center gap-3 mt-6 text-stone-600');
+    const indicador = el('div', 'flex items-center justify-center gap-3 py-6 text-[#5F5148]');
     indicador.id = 'indicador-carregando';
-    indicador.append(el('div', 'spinner'), el('span', 'text-sm', 'Consultando o sistema especialista...'));
-    painel.append(indicador);
+    indicador.append(el('div', 'spinner'), el('span', 'text-sm font-medium', 'Consultando o motor de inferência MYCIN...'));
+    painelPrincipal.append(indicador);
 }
 
 function mostrarErro(mensagem, tentarNovamente) {
-    painel.querySelector('#indicador-carregando')?.remove();
-    painel.querySelectorAll('button').forEach((b) => (b.disabled = false));
+    painelPrincipal.querySelector('#indicador-carregando')?.remove();
+    painelPrincipal.querySelectorAll('button').forEach((b) => (b.disabled = false));
 
-    const caixa = el('div', 'surgir mt-6 w-full bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 text-center');
+    const caixa = el(
+        'div',
+        'surgir card-bio border-l-4 border-l-[#9A3F25] text-center my-4 bg-white p-6'
+    );
     caixa.id = 'caixa-erro';
     caixa.append(
-        el('p', 'font-medium', 'Não foi possível falar com o servidor.'),
-        el('p', 'text-sm mt-1', mensagem),
-        botao('Tentar novamente', 'btn-tentar-novamente', tentarNovamente, 'mt-3 text-base')
+        el('h3', 'text-base font-bold text-[#2A211C] m-0 mb-1', 'Não foi possível comunicar com o servidor'),
+        el('p', 'text-sm text-[#5F5148] m-0 mb-4', mensagem)
     );
-    painel.append(caixa);
+
+    const btnTentar = el('button', 'btn-primario text-sm h-10 px-5 inline-flex', 'Tentar novamente');
+    btnTentar.type = 'button';
+    btnTentar.addEventListener('click', tentarNovamente);
+    caixa.append(btnTentar);
+
+    painelPrincipal.append(caixa);
 }
 
 function mostrarPergunta(pergunta) {
-    painel.replaceChildren();
+    painelPrincipal.replaceChildren();
 
-    const caixa = el('div', 'surgir bg-tan w-full text-center py-8 px-6 rounded-[2rem] shadow-sm mb-8');
-    caixa.append(
-        el('p', 'text-sm font-semibold text-rust uppercase tracking-wide mb-2', `Pergunta ${estado.historico.length + 1}`),
-        el('p', 'text-xl font-medium', pergunta.texto)
+    const numeroPergunta = estado.historico.length + 1;
+    const categoria = obterCategoria(pergunta);
+
+    // 1. Linha superior: "Pergunta N" e categoria
+    const linhaTopo = el('div', 'flex items-center justify-between text-[13px] font-semibold text-[#5F5148] w-full px-1');
+    linhaTopo.append(el('span', '', `Pergunta ${numeroPergunta}`), el('span', '', categoria));
+
+    // 2. Barra de progresso (track h10, fill accent)
+    const progresso = Math.min(100, Math.max(10, Math.round((numeroPergunta / 18) * 100)));
+    const trackProgresso = el('div', 'w-full h-[10px] bg-[#EADFD3] rounded-full overflow-hidden my-2');
+    const fillProgresso = el('div', 'h-full bg-[#9A3F25] rounded-full transition-all duration-300');
+    fillProgresso.style.width = `${progresso}%`;
+    trackProgresso.append(fillProgresso);
+
+    // 3. Card principal da pergunta (padding 40px)
+    const card = el('div', 'card-bio p-8 sm:p-10 w-full surgir');
+
+    const eyebrow = el('span', 'eyebrow block mb-2', categoria.toUpperCase());
+    const h2 = el('h2', 'font-serif text-[26px] sm:text-[34px] leading-[1.2] font-semibold text-[#2A211C] my-3', pergunta.texto);
+    const dica = el(
+        'p',
+        'text-base text-[#5F5148] leading-relaxed mb-8 m-0',
+        pergunta.ajuda || 'Avalie os sinais apresentados pelo animal e responda conforme o grau de confiança.'
     );
-    if (pergunta.ajuda) caixa.append(el('p', 'text-sm text-stone-600 mt-3', pergunta.ajuda));
 
-    const botoes = el('div', 'surgir flex flex-wrap w-full justify-center gap-4 md:gap-6');
-    pergunta.opcoes.forEach((opcao) => {
-        botoes.append(botao(opcao.rotulo, `btn-opcao-${opcao.valor}`, () => responder(opcao), 'w-32'));
+    // Grid de 5 colunas com os 5 botões especificados
+    const gridOpcoes = el('div', 'grid grid-cols-2 min-[900px]:grid-cols-5 gap-3 w-full');
+
+    const OPCOES_5 = [
+        { rotulo: 'Sim', sub: 'CF +1.0', valor: 's' },
+        { rotulo: 'Provavelmente sim', sub: 'CF +0.6', valor: 'p' },
+        { rotulo: 'Não sei', sub: 'CF 0.0', valor: '?' },
+        { rotulo: 'Provavelmente não', sub: 'CF -0.6', valor: 'n' },
+        { rotulo: 'Não', sub: 'CF -1.0', valor: 'n' },
+    ];
+
+    OPCOES_5.forEach((opt) => {
+        const btn = el('button', 'btn-opcao-grid group');
+        btn.type = 'button';
+        btn.setAttribute('aria-label', `${opt.rotulo} (${opt.sub})`);
+
+        const spanRotulo = el('span', 'rotulo-opcao text-[#2A211C] px-1', opt.rotulo);
+        const spanSub = el('span', 'text-[11px] text-[#5F5148]/80 font-medium shrink-0 mt-0.5', opt.sub);
+
+        btn.append(spanRotulo, spanSub);
+        btn.addEventListener('click', () => {
+            btn.classList.add('escolhido');
+            responder({ valor: opt.valor, rotulo: opt.rotulo });
+        });
+        gridOpcoes.append(btn);
     });
 
-    painel.append(caixa, botoes);
-}
+    // Nota explicativa
+    const nota = el(
+        'p',
+        'text-sm text-[#5F5148] mt-8 mb-0 flex items-center gap-2 border-t border-[#E7DDD3]/60 pt-4',
+        'Cada resposta é convertida em Fator de Certeza e inserida na memória de trabalho.'
+    );
 
-function adicionarAoHistorico(pergunta, opcao) {
-    estado.historico.push({ pergunta, opcao });
+    card.append(eyebrow, h2, dica, gridOpcoes, nota);
+    painelPrincipal.append(linhaTopo, trackProgresso, card);
 
-    const item = el('li', 'surgir bg-rust text-white rounded-full shadow-sm px-5 py-3 flex items-center justify-between gap-3');
-    const texto = el('span', 'text-sm truncate', `${estado.historico.length} - ${pergunta.resumo ?? pergunta.texto}`);
-    texto.title = pergunta.texto;
-    item.append(texto, el('span', 'text-sm font-semibold shrink-0', opcao.rotulo.toUpperCase()));
-    listaHistorico.append(item);
+    // Atualiza botões da coluna lateral
+    acoesLateral.replaceChildren();
+    const btnReiniciar = el('button', 'btn-secundario w-full text-sm', 'Reiniciar atendimento');
+    btnReiniciar.type = 'button';
+    btnReiniciar.addEventListener('click', iniciar);
+    acoesLateral.append(btnReiniciar);
 }
 
 function mostrarDiagnostico(resposta) {
-    painel.replaceChildren();
+    painelPrincipal.replaceChildren();
 
-    const cabecalho = el('div', 'surgir bg-tan w-full text-center py-6 px-6 rounded-[2rem] shadow-sm mb-6');
+    const hipoteses = resposta.diagnosticos || [];
+    const top = hipoteses[0] || {
+        doenca: 'Sem diagnóstico conclusivo',
+        certeza: 0,
+        justificativa: [],
+        recomendacao: 'Coletar mais evidências clínicas.',
+    };
+
+    // Cabeçalho da tela de resultado
+    const containerResultado = el('div', 'w-full flex flex-col gap-6 surgir');
+
+    const cabecalho = el('div', 'flex flex-col items-start');
     cabecalho.append(
-        el('h2', 'text-2xl font-semibold text-rust', 'Resultado da anamnese'),
-        el('p', 'text-sm text-stone-600 mt-1', `${estado.historico.length} perguntas respondidas`)
+        el('span', 'eyebrow mb-1', 'RESULTADO DA ANAMNESE'),
+        el('h1', 'font-serif text-[32px] sm:text-[36px] font-bold text-[#2A211C] m-0 mb-1', 'Parecer de triagem'),
+        el('p', 'text-sm text-[#5F5148] m-0', `${estado.historico.length} perguntas respondidas`)
     );
-    painel.append(cabecalho);
 
-    if (resposta.diagnosticos.length === 0) {
-        painel.append(
-            el('p', 'surgir w-full bg-white/70 border border-tan rounded-3xl p-5 text-center mb-4',
-                resposta.mensagem ?? 'Nenhum diagnóstico conclusivo.')
+    // Card Principal: Mais Provável
+    const cardPrincipal = el('div', 'card-bio p-7 sm:p-8');
+
+    const pctTop = Math.round((top.certeza || 0) * 100);
+
+    const topoCard = el('div', 'flex items-baseline justify-between gap-4');
+    const esqCard = el('div', 'flex flex-col');
+    esqCard.append(
+        el('span', 'eyebrow block mb-1', 'MAIS PROVÁVEL'),
+        el('h2', 'text-[24px] sm:text-[26px] font-bold text-[#2A211C] m-0', top.doenca)
+    );
+    const dirCard = el('span', 'text-[30px] sm:text-[34px] font-bold text-[#9A3F25] shrink-0', `${pctTop}%`);
+    topoCard.append(esqCard, dirCard);
+
+    // Barra de certeza principal (track h12 com fill = %)
+    const trackPrincipal = el('div', 'h-3 bg-[#EADFD3] rounded-full overflow-hidden my-4');
+    const fillPrincipal = el('div', 'h-full bg-[#9A3F25] rounded-full transition-all duration-700');
+    fillPrincipal.style.width = '0%';
+    trackPrincipal.append(fillPrincipal);
+    requestAnimationFrame(() => requestAnimationFrame(() => (fillPrincipal.style.width = `${pctTop}%`)));
+
+    cardPrincipal.append(topoCard, trackPrincipal);
+
+    // Alerta (só se urgente ou se top.alerta existir)
+    if (top.alerta || top.certeza >= 0.75) {
+        const caixaAlerta = el('div', 'bg-[#FFF1D6] border border-[#E8C877] text-[#5C3D00] rounded-xl p-4 my-4 flex items-start gap-3');
+        const iconeAlerta = icone('alerta', 'w-5 h-5 text-[#5C3D00] shrink-0 mt-0.5', 'Alerta');
+        const corpoAlerta = el('div', 'flex flex-col');
+        corpoAlerta.append(
+            el('h3', 'text-sm font-bold m-0 mb-1', 'Atenção veterinária urgente'),
+            el('p', 'text-sm m-0 leading-relaxed', top.alerta || 'Quadro com alta probabilidade clínica de emergência. Acionar o médico-veterinário imediatamente.')
         );
+        caixaAlerta.append(iconeAlerta, corpoAlerta);
+        cardPrincipal.append(caixaAlerta);
     }
 
-    resposta.diagnosticos.forEach((diagnostico, i) => painel.append(cartaoDiagnostico(diagnostico, i)));
+    // Seção "Por que este diagnóstico?" com linhas formatadas
+    const sessaoExplicacao = el('div', 'mt-6 mb-4');
+    sessaoExplicacao.append(el('h3', 'text-base font-bold text-[#2A211C] m-0 mb-3', 'Por que este diagnóstico?'));
 
-    painel.append(botao('Nova anamnese', 'btn-nova-anamnese', iniciar, 'mt-2'));
+    const listaEvidencias = el('div', 'flex flex-col gap-2');
+    if (top.justificativa && top.justificativa.length > 0) {
+        top.justificativa.forEach((just) => {
+            const linha = el('div', 'bg-[#F7F2EC] rounded-[10px] p-3 text-sm flex items-center justify-between gap-3 border border-[#E7DDD3]/60');
+            linha.append(
+                el('span', 'text-[#2A211C] text-sm leading-normal', String(just)),
+                el('span', 'font-bold text-xs uppercase tracking-wide text-[#7E2F18] bg-[#F3E3DA] px-2.5 py-1 rounded-md shrink-0', 'Reforça suspeita')
+            );
+            listaEvidencias.append(linha);
+        });
+    } else {
+        const linhaVazia = el('div', 'bg-[#F7F2EC] rounded-[10px] p-3 text-sm text-[#5F5148] italic border border-[#E7DDD3]/60', 'Evidências acumuladas através das respostas fornecidas.');
+        listaEvidencias.append(linhaVazia);
+    }
+    sessaoExplicacao.append(listaEvidencias);
+    cardPrincipal.append(sessaoExplicacao);
+
+    // Caixa de recomendação
+    const caixaRecomendacao = el('div', 'border border-[#E7DDD3] rounded-xl p-4 bg-[#F7F2EC]/50 mt-6');
+    caixaRecomendacao.append(
+        el('h4', 'text-sm font-bold text-[#2A211C] m-0 mb-1', 'Recomendação'),
+        el('p', 'text-[15px] text-[#5F5148] m-0 leading-relaxed', top.recomendacao || 'Consultar avaliação presencial de médico-veterinário e monitorar evolução do animal.')
+    );
+    cardPrincipal.append(caixaRecomendacao);
+
+    containerResultado.append(cabecalho, cardPrincipal);
+
+    // Card "Outras hipóteses" (da 2ª em diante)
+    if (hipoteses.length > 1) {
+        const cardOutras = el('div', 'card-bio p-7');
+        cardOutras.append(el('span', 'eyebrow block mb-4', 'OUTRAS HIPÓTESES'));
+
+        for (let i = 1; i < hipoteses.length; i++) {
+            const h = hipoteses[i];
+            const pct = Math.round((h.certeza || 0) * 100);
+
+            const bloco = el('div', 'mb-4 last:mb-0');
+            const linhaInfo = el('div', 'flex items-center justify-between text-sm mb-1');
+            linhaInfo.append(
+                el('span', 'font-semibold text-[#2A211C]', h.doenca),
+                el('span', 'font-semibold text-[#5F5148]', `${pct}%`)
+            );
+
+            const trackH = el('div', 'h-2 bg-[#EADFD3] rounded-full overflow-hidden');
+            const fillH = el('div', 'h-full bg-[#C98A73] rounded-full');
+            fillH.style.width = `${pct}%`;
+            trackH.append(fillH);
+
+            bloco.append(linhaInfo, trackH);
+            cardOutras.append(bloco);
+        }
+        containerResultado.append(cardOutras);
+    }
+
+    painelPrincipal.append(containerResultado);
+
+    // Atualiza botões da coluna lateral na tela de resultado
+    acoesLateral.replaceChildren();
+
+    const btnImprimir = el('button', 'btn-primario w-full text-base flex items-center justify-center gap-2 mb-2', 'Imprimir relatório');
+    btnImprimir.id = 'btn-imprimir';
+    btnImprimir.type = 'button';
+    btnImprimir.prepend(icone('imprimir', 'w-5 h-5 text-white', 'Imprimir'));
+    btnImprimir.addEventListener('click', () => window.print());
+
+    const btnNova = el('button', 'btn-secundario w-full text-base', 'Nova anamnese');
+    btnNova.id = 'btn-reiniciar-resultado';
+    btnNova.type = 'button';
+    btnNova.addEventListener('click', iniciar);
+
+    acoesLateral.append(btnImprimir, btnNova);
 }
 
-function cartaoDiagnostico(d, indice) {
-    const porcentagem = Math.round(d.certeza * 100);
-
-    const cartao = el('article', 'surgir w-full bg-white/70 border border-tan rounded-3xl p-5 shadow-sm mb-4');
-    cartao.style.animationDelay = `${indice * 120}ms`;
-
-    if (indice === 0) {
-        cartao.append(el('span', 'inline-block text-xs font-semibold uppercase tracking-wide text-rust mb-1', 'Mais provável'));
-    }
-
-    const topo = el('div', 'flex items-baseline justify-between gap-4');
-    topo.append(el('h3', 'text-lg font-semibold', d.doenca), el('span', 'text-rust font-semibold', `${porcentagem}%`));
-
-    // Barra de certeza (anima de 0 até o valor)
-    const barra = el('div', 'h-2 bg-tan rounded-full overflow-hidden mt-2 mb-4');
-    const preenchimento = el('div', 'h-full bg-rust rounded-full transition-all duration-700');
-    preenchimento.style.width = '0%';
-    barra.append(preenchimento);
-    requestAnimationFrame(() => requestAnimationFrame(() => (preenchimento.style.width = `${porcentagem}%`)));
-
-    cartao.append(topo, barra);
-
-    if (d.alerta) {
-        cartao.append(el('p', 'bg-amber-100 border border-amber-300 text-amber-900 text-sm rounded-xl p-3 mb-3', `⚠️ ${d.alerta}`));
-    }
-
-    if (d.justificativa?.length) {
-        const lista = el('ul', 'list-disc pl-5 text-sm text-stone-700 space-y-0.5');
-        d.justificativa.forEach((motivo) => lista.append(el('li', '', motivo)));
-        cartao.append(el('p', 'text-sm font-medium mb-1', 'Por que este diagnóstico?'), lista);
-    }
-
-    if (d.recomendacao) {
-        const recomendacao = el('p', 'text-sm mt-3');
-        recomendacao.append(el('strong', '', 'Recomendação: '), document.createTextNode(d.recomendacao));
-        cartao.append(recomendacao);
-    }
-
-    return cartao;
+function voltarInicio() {
+    telaAnamnese.classList.add('hidden');
+    telaInicio.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ---------------------------------------------------------------------------
+const linkLogo = document.getElementById('link-logo');
+if (linkLogo) {
+    linkLogo.addEventListener('click', (e) => {
+        e.preventDefault();
+        voltarInicio();
+    });
+}
+
 btnIniciar.addEventListener('click', iniciar);
+
+btnVerHistorico.addEventListener('click', () => {
+    if (estado.historico.length > 0) {
+        telaInicio.classList.add('hidden');
+        telaAnamnese.classList.remove('hidden');
+    } else {
+        iniciar();
+    }
+});
+
+navNovaAnamnese.addEventListener('click', iniciar);
+
+navHistorico.addEventListener('click', () => {
+    if (telaAnamnese.classList.contains('hidden')) {
+        iniciar();
+    } else {
+        document.getElementById('painel-lateral')?.scrollIntoView({ behavior: 'smooth' });
+    }
+});
+
+navBaseRegras.addEventListener('click', () => {
+    modalBaseRegras?.showModal();
+});
+
+btnFecharModal?.addEventListener('click', () => {
+    modalBaseRegras?.close();
+});
+
+btnEntendidoModal?.addEventListener('click', () => {
+    modalBaseRegras?.close();
+});
+
+// Fechar modal ao clicar fora (backdrop)
+modalBaseRegras?.addEventListener('click', (e) => {
+    const rect = modalBaseRegras.getBoundingClientRect();
+    const isInDialog =
+        rect.top <= e.clientY &&
+        e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX &&
+        e.clientX <= rect.left + rect.width;
+    if (!isInDialog) {
+        modalBaseRegras.close();
+    }
+});
