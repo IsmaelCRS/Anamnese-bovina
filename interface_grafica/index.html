@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioExpert - Anamnese Bovina</title>
+    <meta name="description"
+        content="BioExpert: sistema especialista para apoio à anamnese e ao diagnóstico de doenças em bovinos.">
+
+    <!-- Tailwind CSS Local -->
+    <script src="js/tailwindcss.js"></script>
+    <script>
+        // Cores do projeto disponíveis como classes: bg-rust, text-rust, bg-tan, bg-bege...
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rust: '#A8462B',  // ferrugem
+                        tan: '#EBDDCE',   // areia
+                        bege: '#F7F3EB',  // fundo
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],   // textos e botões
+                        serif: ['Lora', 'serif'],        // títulos (classe font-serif)
+                    },
+                },
+            },
+        };
+    </script>
+
+    <!-- CSS com fontes locais embutidas -->
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+
+<body class="bg-bege min-h-screen flex flex-col font-sans text-stone-800">
+
+    <!-- Cabeçalho -->
+    <header class="bg-rust text-white shadow-md w-full">
+        <div class="flex items-center justify-center gap-3 py-3">
+            <!-- Logo: arquivo em interface_grafica/img/logo.png -->
+            <span id="logo-container"
+                class="bg-bege rounded-full h-14 w-14 p-1.5 flex items-center justify-center shadow-md ring-2 ring-white/40 shrink-0">
+                <img id="logo" src="img/logo.png" alt="Logo do BioExpert" class="h-full w-full object-contain"
+                    onerror="this.parentElement.style.display='none'">
+            </span>
+            <h1 class="font-serif text-[32px] font-semibold tracking-wide">BioExpert</h1>
+        </div>
+    </header>
+
+    <!-- Aviso exibido apenas quando o back-end simulado (js/mock.js) está ativo -->
+    <div id="aviso-mock" class="hidden bg-amber-100 text-amber-900 text-sm text-center py-1">
+        Modo teste: usando back-end simulado (<code>js/mock.js</code>)
+    </div>
+
+    <main class="flex-grow w-full p-6">
+
+        <!-- Tela inicial -->
+        <section id="tela-inicio" class="flex items-center justify-center min-h-[70vh]">
+            <button id="btn-iniciar" type="button"
+                class="btn-primario group flex items-center gap-4 text-xl px-8 py-5 rounded-3xl text-left">
+                <!-- Ícone: estetoscópio (Lucide) -->
+                <span
+                    class="flex items-center justify-center h-12 w-12 rounded-2xl bg-white/15 transition-transform duration-300 group-hover:rotate-[-8deg]">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7"
+                        aria-hidden="true">
+                        <path d="M11 2v2" />
+                        <path d="M5 2v2" />
+                        <path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1" />
+                        <path d="M8 15a6 6 0 0 0 12 0v-3" />
+                        <circle cx="20" cy="10" r="2" />
+                    </svg>
+                </span>
+                <span class="flex flex-col leading-tight">
+                    <span>Iniciar</span>
+                    <span class="font-semibold">Anamnese</span>
+                </span>
+            </button>
+        </section>
+
+        <!-- Tela da anamnese (pergunta/diagnóstico + histórico) -->
+        <section id="tela-anamnese" class="hidden w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-12">
+
+            <!-- Coluna esquerda: pergunta atual OU resultado (montado pelo app.js) -->
+            <div id="painel-principal" class="flex flex-col items-center w-full" aria-live="polite"></div>
+
+            <!-- Coluna direita: histórico -->
+            <aside class="flex flex-col items-center md:items-end w-full">
+                <h2
+                    class="bg-tan w-full md:w-4/5 text-center py-4 px-6 rounded-full text-lg font-medium shadow-sm mb-6">
+                    Histórico de respostas
+                </h2>
+                <ol id="lista-historico" class="flex flex-col gap-3 w-full md:w-4/5"></ol>
+
+                <!-- Estado vazio: some automaticamente quando a lista ganha itens (ver estilo.css) -->
+                <div id="historico-vazio"
+                    class="flex flex-col items-center justify-center gap-3 w-full md:w-4/5 py-10 text-stone-400">
+                    <img src="img/logo.png" alt="" class="h-24 w-24 object-contain opacity-10"
+                        onerror="this.style.display='none'">
+                    <p class="text-sm">Nenhuma resposta ainda.</p>
+                    <p class="text-xs text-stone-400/80 text-center">As respostas aparecerão aqui conforme a anamnese
+                        avança.</p>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="text-center text-xs text-stone-500 py-4 px-6">
+        Ferramenta de apoio à decisão — não substitui a avaliação de um médico veterinário.
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

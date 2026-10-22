@@ -1,0 +1,143 @@
+/* ------------------------------------------------------------------ */
+/* Fontes Locais (Offline)                                            */
+/* ------------------------------------------------------------------ */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url('../fonts/inter.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 500 700;
+    font-display: swap;
+    src: url('../fonts/lora.woff2') format('woff2');
+}
+
+/* Estilos complementares ao Tailwind */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/* Animações                                                           */
+/* ------------------------------------------------------------------ */
+@keyframes surgir {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.surgir {
+    animation: surgir 0.3s ease-out both;
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid rgba(168, 70, 43, 0.25);
+    border-top-color: #A8462B;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Botão principal: cor sólida com brilho (glow) na própria cor        */
+/* ------------------------------------------------------------------ */
+.btn-primario {
+    background-color: #A8462B;
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(168, 70, 43, 0.30);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btn-primario:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(168, 70, 43, 0.42);
+    filter: brightness(1.06);
+}
+
+.btn-primario:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-primario:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------ */
+/* Botões de alternativa (Sim / Não / Não sei): estilo "outline"       */
+/* ------------------------------------------------------------------ */
+.btn-opcao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 9rem;
+    padding: 0.75rem 1.25rem;
+    border: 2px solid #A8462B;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.6);
+    color: #A8462B;
+    font-size: 1.125rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-opcao svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.btn-opcao:hover:not(:disabled) {
+    background-color: #A8462B;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(168, 70, 43, 0.30);
+}
+
+.btn-opcao:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+}
+
+.btn-opcao:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Alternativa clicada fica preenchida enquanto o sistema processa */
+.btn-opcao.escolhido {
+    background-color: #A8462B;
+    color: #fff;
+    opacity: 1;
+    box-shadow: 0 8px 18px rgba(168, 70, 43, 0.30);
+}
+
+.btn-primario:focus-visible,
+.btn-opcao:focus-visible {
+    outline: 3px solid rgba(168, 70, 43, 0.35);
+    outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Histórico: estado vazio só aparece enquanto a lista não tem itens  */
+/* ------------------------------------------------------------------ */
+#lista-historico:not(:empty)~#historico-vazio {
+    display: none;
+}
